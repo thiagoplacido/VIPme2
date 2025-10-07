@@ -35,7 +35,10 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "vipme2_database"
-                ).build()
+                )
+                    .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

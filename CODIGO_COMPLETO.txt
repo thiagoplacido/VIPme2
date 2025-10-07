@@ -1,0 +1,2906 @@
+﻿package com.seuapp.vipme2.data.local.dao;
+
+import android.database.Cursor;
+import androidx.annotation.NonNull;
+import androidx.room.CoroutinesRoom;
+import androidx.room.EntityDeletionOrUpdateAdapter;
+import androidx.room.EntityInsertionAdapter;
+import androidx.room.EntityUpsertionAdapter;
+import androidx.room.RoomDatabase;
+import androidx.room.RoomSQLiteQuery;
+import androidx.room.util.CursorUtil;
+import androidx.room.util.DBUtil;
+import androidx.sqlite.db.SupportSQLiteStatement;
+import com.seuapp.vipme2.data.local.Converters;
+import com.seuapp.vipme2.data.local.model.CashEntry;
+import java.lang.Class;
+import java.lang.Exception;
+import java.lang.IllegalStateException;
+import java.lang.Long;
+import java.lang.Object;
+import java.lang.Override;
+import java.lang.String;
+import java.lang.SuppressWarnings;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.annotation.processing.Generated;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlinx.coroutines.flow.Flow;
+
+@Generated("androidx.room.RoomProcessor")
+@SuppressWarnings({"unchecked", "deprecation"})
+public final class CashEntryDao_Impl implements CashEntryDao {
+  private final RoomDatabase __db;
+
+  private final EntityUpsertionAdapter<CashEntry> __upsertionAdapterOfCashEntry;
+
+  private final Converters __converters = new Converters();
+
+  public CashEntryDao_Impl(@NonNull final RoomDatabase __db) {
+    this.__db = __db;
+    this.__upsertionAdapterOfCashEntry = new EntityUpsertionAdapter<CashEntry>(new EntityInsertionAdapter<CashEntry>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "INSERT INTO `cash_entries` (`id`,`amount`,`entryDate`,`description`,`type`) VALUES (nullif(?, 0),?,?,?,?)";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final CashEntry entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindDouble(2, entity.getAmount());
+        final Long _tmp = __converters.dateToTimestamp(entity.getEntryDate());
+        if (_tmp == null) {
+          statement.bindNull(3);
+        } else {
+          statement.bindLong(3, _tmp);
+        }
+        statement.bindString(4, entity.getDescription());
+        statement.bindString(5, entity.getType());
+      }
+    }, new EntityDeletionOrUpdateAdapter<CashEntry>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "UPDATE `cash_entries` SET `id` = ?,`amount` = ?,`entryDate` = ?,`description` = ?,`type` = ? WHERE `id` = ?";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final CashEntry entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindDouble(2, entity.getAmount());
+        final Long _tmp = __converters.dateToTimestamp(entity.getEntryDate());
+        if (_tmp == null) {
+          statement.bindNull(3);
+        } else {
+          statement.bindLong(3, _tmp);
+        }
+        statement.bindString(4, entity.getDescription());
+        statement.bindString(5, entity.getType());
+        statement.bindLong(6, entity.getId());
+      }
+    });
+  }
+
+  @Override
+  public Object upsert(final CashEntry cashEntry, final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        __db.beginTransaction();
+        try {
+          __upsertionAdapterOfCashEntry.upsert(cashEntry);
+          __db.setTransactionSuccessful();
+          return Unit.INSTANCE;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Flow<List<CashEntry>> getAllCashEntries() {
+    final String _sql = "SELECT * FROM cash_entries ORDER BY entryDate DESC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"cash_entries"}, new Callable<List<CashEntry>>() {
+      @Override
+      @NonNull
+      public List<CashEntry> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfAmount = CursorUtil.getColumnIndexOrThrow(_cursor, "amount");
+          final int _cursorIndexOfEntryDate = CursorUtil.getColumnIndexOrThrow(_cursor, "entryDate");
+          final int _cursorIndexOfDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "description");
+          final int _cursorIndexOfType = CursorUtil.getColumnIndexOrThrow(_cursor, "type");
+          final List<CashEntry> _result = new ArrayList<CashEntry>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final CashEntry _item;
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final double _tmpAmount;
+            _tmpAmount = _cursor.getDouble(_cursorIndexOfAmount);
+            final Date _tmpEntryDate;
+            final Long _tmp;
+            if (_cursor.isNull(_cursorIndexOfEntryDate)) {
+              _tmp = null;
+            } else {
+              _tmp = _cursor.getLong(_cursorIndexOfEntryDate);
+            }
+            final Date _tmp_1 = __converters.fromTimestamp(_tmp);
+            if (_tmp_1 == null) {
+              throw new IllegalStateException("Expected NON-NULL 'java.util.Date', but it was NULL.");
+            } else {
+              _tmpEntryDate = _tmp_1;
+            }
+            final String _tmpDescription;
+            _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
+            final String _tmpType;
+            _tmpType = _cursor.getString(_cursorIndexOfType);
+            _item = new CashEntry(_tmpId,_tmpAmount,_tmpEntryDate,_tmpDescription,_tmpType);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @NonNull
+  public static List<Class<?>> getRequiredConverters() {
+    return Collections.emptyList();
+  }
+}
+package com.seuapp.vipme2.data.local.dao;
+
+import android.database.Cursor;
+import androidx.annotation.NonNull;
+import androidx.room.CoroutinesRoom;
+import androidx.room.EntityDeletionOrUpdateAdapter;
+import androidx.room.EntityInsertionAdapter;
+import androidx.room.EntityUpsertionAdapter;
+import androidx.room.RoomDatabase;
+import androidx.room.RoomSQLiteQuery;
+import androidx.room.SharedSQLiteStatement;
+import androidx.room.util.CursorUtil;
+import androidx.room.util.DBUtil;
+import androidx.sqlite.db.SupportSQLiteStatement;
+import com.seuapp.vipme2.data.local.model.Customer;
+import java.lang.Class;
+import java.lang.Exception;
+import java.lang.Object;
+import java.lang.Override;
+import java.lang.String;
+import java.lang.SuppressWarnings;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.annotation.processing.Generated;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlinx.coroutines.flow.Flow;
+
+@Generated("androidx.room.RoomProcessor")
+@SuppressWarnings({"unchecked", "deprecation"})
+public final class CustomerDao_Impl implements CustomerDao {
+  private final RoomDatabase __db;
+
+  private final SharedSQLiteStatement __preparedStmtOfDelete;
+
+  private final EntityUpsertionAdapter<Customer> __upsertionAdapterOfCustomer;
+
+  public CustomerDao_Impl(@NonNull final RoomDatabase __db) {
+    this.__db = __db;
+    this.__preparedStmtOfDelete = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "DELETE FROM customers WHERE id = ?";
+        return _query;
+      }
+    };
+    this.__upsertionAdapterOfCustomer = new EntityUpsertionAdapter<Customer>(new EntityInsertionAdapter<Customer>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "INSERT INTO `customers` (`id`,`name`,`phone`,`email`,`notes`) VALUES (nullif(?, 0),?,?,?,?)";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final Customer entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindString(2, entity.getName());
+        if (entity.getPhone() == null) {
+          statement.bindNull(3);
+        } else {
+          statement.bindString(3, entity.getPhone());
+        }
+        if (entity.getEmail() == null) {
+          statement.bindNull(4);
+        } else {
+          statement.bindString(4, entity.getEmail());
+        }
+        if (entity.getNotes() == null) {
+          statement.bindNull(5);
+        } else {
+          statement.bindString(5, entity.getNotes());
+        }
+      }
+    }, new EntityDeletionOrUpdateAdapter<Customer>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "UPDATE `customers` SET `id` = ?,`name` = ?,`phone` = ?,`email` = ?,`notes` = ? WHERE `id` = ?";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final Customer entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindString(2, entity.getName());
+        if (entity.getPhone() == null) {
+          statement.bindNull(3);
+        } else {
+          statement.bindString(3, entity.getPhone());
+        }
+        if (entity.getEmail() == null) {
+          statement.bindNull(4);
+        } else {
+          statement.bindString(4, entity.getEmail());
+        }
+        if (entity.getNotes() == null) {
+          statement.bindNull(5);
+        } else {
+          statement.bindString(5, entity.getNotes());
+        }
+        statement.bindLong(6, entity.getId());
+      }
+    });
+  }
+
+  @Override
+  public Object delete(final long customerId, final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfDelete.acquire();
+        int _argIndex = 1;
+        _stmt.bindLong(_argIndex, customerId);
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfDelete.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object upsert(final Customer customer, final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        __db.beginTransaction();
+        try {
+          __upsertionAdapterOfCustomer.upsert(customer);
+          __db.setTransactionSuccessful();
+          return Unit.INSTANCE;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Flow<List<Customer>> getAllCustomers() {
+    final String _sql = "SELECT * FROM customers ORDER BY name ASC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"customers"}, new Callable<List<Customer>>() {
+      @Override
+      @NonNull
+      public List<Customer> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
+          final int _cursorIndexOfPhone = CursorUtil.getColumnIndexOrThrow(_cursor, "phone");
+          final int _cursorIndexOfEmail = CursorUtil.getColumnIndexOrThrow(_cursor, "email");
+          final int _cursorIndexOfNotes = CursorUtil.getColumnIndexOrThrow(_cursor, "notes");
+          final List<Customer> _result = new ArrayList<Customer>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final Customer _item;
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpName;
+            _tmpName = _cursor.getString(_cursorIndexOfName);
+            final String _tmpPhone;
+            if (_cursor.isNull(_cursorIndexOfPhone)) {
+              _tmpPhone = null;
+            } else {
+              _tmpPhone = _cursor.getString(_cursorIndexOfPhone);
+            }
+            final String _tmpEmail;
+            if (_cursor.isNull(_cursorIndexOfEmail)) {
+              _tmpEmail = null;
+            } else {
+              _tmpEmail = _cursor.getString(_cursorIndexOfEmail);
+            }
+            final String _tmpNotes;
+            if (_cursor.isNull(_cursorIndexOfNotes)) {
+              _tmpNotes = null;
+            } else {
+              _tmpNotes = _cursor.getString(_cursorIndexOfNotes);
+            }
+            _item = new Customer(_tmpId,_tmpName,_tmpPhone,_tmpEmail,_tmpNotes);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @NonNull
+  public static List<Class<?>> getRequiredConverters() {
+    return Collections.emptyList();
+  }
+}
+package com.seuapp.vipme2.data.local.dao;
+
+import android.database.Cursor;
+import androidx.annotation.NonNull;
+import androidx.room.CoroutinesRoom;
+import androidx.room.EntityDeletionOrUpdateAdapter;
+import androidx.room.EntityInsertionAdapter;
+import androidx.room.EntityUpsertionAdapter;
+import androidx.room.RoomDatabase;
+import androidx.room.RoomSQLiteQuery;
+import androidx.room.SharedSQLiteStatement;
+import androidx.room.util.CursorUtil;
+import androidx.room.util.DBUtil;
+import androidx.sqlite.db.SupportSQLiteStatement;
+import com.seuapp.vipme2.data.local.model.Product;
+import java.lang.Class;
+import java.lang.Exception;
+import java.lang.Object;
+import java.lang.Override;
+import java.lang.String;
+import java.lang.SuppressWarnings;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.annotation.processing.Generated;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlinx.coroutines.flow.Flow;
+
+@Generated("androidx.room.RoomProcessor")
+@SuppressWarnings({"unchecked", "deprecation"})
+public final class ProductDao_Impl implements ProductDao {
+  private final RoomDatabase __db;
+
+  private final SharedSQLiteStatement __preparedStmtOfDelete;
+
+  private final EntityUpsertionAdapter<Product> __upsertionAdapterOfProduct;
+
+  public ProductDao_Impl(@NonNull final RoomDatabase __db) {
+    this.__db = __db;
+    this.__preparedStmtOfDelete = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "DELETE FROM products WHERE id = ?";
+        return _query;
+      }
+    };
+    this.__upsertionAdapterOfProduct = new EntityUpsertionAdapter<Product>(new EntityInsertionAdapter<Product>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "INSERT INTO `products` (`id`,`name`,`description`,`price`,`imageUrl`) VALUES (nullif(?, 0),?,?,?,?)";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final Product entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindString(2, entity.getName());
+        if (entity.getDescription() == null) {
+          statement.bindNull(3);
+        } else {
+          statement.bindString(3, entity.getDescription());
+        }
+        statement.bindDouble(4, entity.getPrice());
+        if (entity.getImageUrl() == null) {
+          statement.bindNull(5);
+        } else {
+          statement.bindString(5, entity.getImageUrl());
+        }
+      }
+    }, new EntityDeletionOrUpdateAdapter<Product>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "UPDATE `products` SET `id` = ?,`name` = ?,`description` = ?,`price` = ?,`imageUrl` = ? WHERE `id` = ?";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final Product entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindString(2, entity.getName());
+        if (entity.getDescription() == null) {
+          statement.bindNull(3);
+        } else {
+          statement.bindString(3, entity.getDescription());
+        }
+        statement.bindDouble(4, entity.getPrice());
+        if (entity.getImageUrl() == null) {
+          statement.bindNull(5);
+        } else {
+          statement.bindString(5, entity.getImageUrl());
+        }
+        statement.bindLong(6, entity.getId());
+      }
+    });
+  }
+
+  @Override
+  public Object delete(final long productId, final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfDelete.acquire();
+        int _argIndex = 1;
+        _stmt.bindLong(_argIndex, productId);
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfDelete.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object upsert(final Product product, final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        __db.beginTransaction();
+        try {
+          __upsertionAdapterOfProduct.upsert(product);
+          __db.setTransactionSuccessful();
+          return Unit.INSTANCE;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Flow<List<Product>> getAllProducts() {
+    final String _sql = "SELECT * FROM products ORDER BY name ASC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"products"}, new Callable<List<Product>>() {
+      @Override
+      @NonNull
+      public List<Product> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
+          final int _cursorIndexOfDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "description");
+          final int _cursorIndexOfPrice = CursorUtil.getColumnIndexOrThrow(_cursor, "price");
+          final int _cursorIndexOfImageUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "imageUrl");
+          final List<Product> _result = new ArrayList<Product>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final Product _item;
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpName;
+            _tmpName = _cursor.getString(_cursorIndexOfName);
+            final String _tmpDescription;
+            if (_cursor.isNull(_cursorIndexOfDescription)) {
+              _tmpDescription = null;
+            } else {
+              _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
+            }
+            final double _tmpPrice;
+            _tmpPrice = _cursor.getDouble(_cursorIndexOfPrice);
+            final String _tmpImageUrl;
+            if (_cursor.isNull(_cursorIndexOfImageUrl)) {
+              _tmpImageUrl = null;
+            } else {
+              _tmpImageUrl = _cursor.getString(_cursorIndexOfImageUrl);
+            }
+            _item = new Product(_tmpId,_tmpName,_tmpDescription,_tmpPrice,_tmpImageUrl);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @NonNull
+  public static List<Class<?>> getRequiredConverters() {
+    return Collections.emptyList();
+  }
+}
+package com.seuapp.vipme2.data.local.dao;
+
+import android.database.Cursor;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.LongSparseArray;
+import androidx.room.CoroutinesRoom;
+import androidx.room.EntityDeletionOrUpdateAdapter;
+import androidx.room.EntityInsertionAdapter;
+import androidx.room.EntityUpsertionAdapter;
+import androidx.room.RoomDatabase;
+import androidx.room.RoomSQLiteQuery;
+import androidx.room.util.CursorUtil;
+import androidx.room.util.DBUtil;
+import androidx.room.util.RelationUtil;
+import androidx.room.util.StringUtil;
+import androidx.sqlite.db.SupportSQLiteStatement;
+import com.seuapp.vipme2.data.local.Converters;
+import com.seuapp.vipme2.data.local.model.Product;
+import com.seuapp.vipme2.data.local.model.Sale;
+import com.seuapp.vipme2.data.local.model.SaleProductCrossRef;
+import com.seuapp.vipme2.data.local.model.SaleWithProducts;
+import java.lang.Class;
+import java.lang.Exception;
+import java.lang.IllegalStateException;
+import java.lang.Long;
+import java.lang.Object;
+import java.lang.Override;
+import java.lang.String;
+import java.lang.StringBuilder;
+import java.lang.SuppressWarnings;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.annotation.processing.Generated;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlinx.coroutines.flow.Flow;
+
+@Generated("androidx.room.RoomProcessor")
+@SuppressWarnings({"unchecked", "deprecation"})
+public final class SaleDao_Impl implements SaleDao {
+  private final RoomDatabase __db;
+
+  private final EntityInsertionAdapter<SaleProductCrossRef> __insertionAdapterOfSaleProductCrossRef;
+
+  private final EntityUpsertionAdapter<Sale> __upsertionAdapterOfSale;
+
+  private final Converters __converters = new Converters();
+
+  public SaleDao_Impl(@NonNull final RoomDatabase __db) {
+    this.__db = __db;
+    this.__insertionAdapterOfSaleProductCrossRef = new EntityInsertionAdapter<SaleProductCrossRef>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "INSERT OR ABORT INTO `SaleProductCrossRef` (`saleId`,`productId`) VALUES (?,?)";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final SaleProductCrossRef entity) {
+        statement.bindLong(1, entity.getSaleId());
+        statement.bindLong(2, entity.getProductId());
+      }
+    };
+    this.__upsertionAdapterOfSale = new EntityUpsertionAdapter<Sale>(new EntityInsertionAdapter<Sale>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "INSERT INTO `sales` (`id`,`customerId`,`saleDate`,`totalAmount`) VALUES (nullif(?, 0),?,?,?)";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final Sale entity) {
+        statement.bindLong(1, entity.getId());
+        if (entity.getCustomerId() == null) {
+          statement.bindNull(2);
+        } else {
+          statement.bindLong(2, entity.getCustomerId());
+        }
+        final Long _tmp = __converters.dateToTimestamp(entity.getSaleDate());
+        if (_tmp == null) {
+          statement.bindNull(3);
+        } else {
+          statement.bindLong(3, _tmp);
+        }
+        statement.bindDouble(4, entity.getTotalAmount());
+      }
+    }, new EntityDeletionOrUpdateAdapter<Sale>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "UPDATE `sales` SET `id` = ?,`customerId` = ?,`saleDate` = ?,`totalAmount` = ? WHERE `id` = ?";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final Sale entity) {
+        statement.bindLong(1, entity.getId());
+        if (entity.getCustomerId() == null) {
+          statement.bindNull(2);
+        } else {
+          statement.bindLong(2, entity.getCustomerId());
+        }
+        final Long _tmp = __converters.dateToTimestamp(entity.getSaleDate());
+        if (_tmp == null) {
+          statement.bindNull(3);
+        } else {
+          statement.bindLong(3, _tmp);
+        }
+        statement.bindDouble(4, entity.getTotalAmount());
+        statement.bindLong(5, entity.getId());
+      }
+    });
+  }
+
+  @Override
+  public Object insertSaleProductCrossRef(final SaleProductCrossRef crossRef,
+      final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        __db.beginTransaction();
+        try {
+          __insertionAdapterOfSaleProductCrossRef.insert(crossRef);
+          __db.setTransactionSuccessful();
+          return Unit.INSTANCE;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object upsertSale(final Sale sale, final Continuation<? super Long> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
+      @Override
+      @NonNull
+      public Long call() throws Exception {
+        __db.beginTransaction();
+        try {
+          final Long _result = __upsertionAdapterOfSale.upsertAndReturnId(sale);
+          __db.setTransactionSuccessful();
+          return _result;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Flow<SaleWithProducts> getSaleWithProducts(final long saleId) {
+    final String _sql = "SELECT * FROM sales WHERE id = ?";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    _statement.bindLong(_argIndex, saleId);
+    return CoroutinesRoom.createFlow(__db, true, new String[] {"SaleProductCrossRef", "products",
+        "sales"}, new Callable<SaleWithProducts>() {
+      @Override
+      @Nullable
+      public SaleWithProducts call() throws Exception {
+        __db.beginTransaction();
+        try {
+          final Cursor _cursor = DBUtil.query(__db, _statement, true, null);
+          try {
+            final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+            final int _cursorIndexOfCustomerId = CursorUtil.getColumnIndexOrThrow(_cursor, "customerId");
+            final int _cursorIndexOfSaleDate = CursorUtil.getColumnIndexOrThrow(_cursor, "saleDate");
+            final int _cursorIndexOfTotalAmount = CursorUtil.getColumnIndexOrThrow(_cursor, "totalAmount");
+            final LongSparseArray<ArrayList<Product>> _collectionProducts = new LongSparseArray<ArrayList<Product>>();
+            while (_cursor.moveToNext()) {
+              final long _tmpKey;
+              _tmpKey = _cursor.getLong(_cursorIndexOfId);
+              if (!_collectionProducts.containsKey(_tmpKey)) {
+                _collectionProducts.put(_tmpKey, new ArrayList<Product>());
+              }
+            }
+            _cursor.moveToPosition(-1);
+            __fetchRelationshipproductsAscomSeuappVipme2DataLocalModelProduct(_collectionProducts);
+            final SaleWithProducts _result;
+            if (_cursor.moveToFirst()) {
+              final Sale _tmpSale;
+              final long _tmpId;
+              _tmpId = _cursor.getLong(_cursorIndexOfId);
+              final Long _tmpCustomerId;
+              if (_cursor.isNull(_cursorIndexOfCustomerId)) {
+                _tmpCustomerId = null;
+              } else {
+                _tmpCustomerId = _cursor.getLong(_cursorIndexOfCustomerId);
+              }
+              final Date _tmpSaleDate;
+              final Long _tmp;
+              if (_cursor.isNull(_cursorIndexOfSaleDate)) {
+                _tmp = null;
+              } else {
+                _tmp = _cursor.getLong(_cursorIndexOfSaleDate);
+              }
+              final Date _tmp_1 = __converters.fromTimestamp(_tmp);
+              if (_tmp_1 == null) {
+                throw new IllegalStateException("Expected NON-NULL 'java.util.Date', but it was NULL.");
+              } else {
+                _tmpSaleDate = _tmp_1;
+              }
+              final double _tmpTotalAmount;
+              _tmpTotalAmount = _cursor.getDouble(_cursorIndexOfTotalAmount);
+              _tmpSale = new Sale(_tmpId,_tmpCustomerId,_tmpSaleDate,_tmpTotalAmount);
+              final ArrayList<Product> _tmpProductsCollection;
+              final long _tmpKey_1;
+              _tmpKey_1 = _cursor.getLong(_cursorIndexOfId);
+              _tmpProductsCollection = _collectionProducts.get(_tmpKey_1);
+              _result = new SaleWithProducts(_tmpSale,_tmpProductsCollection);
+            } else {
+              _result = null;
+            }
+            __db.setTransactionSuccessful();
+            return _result;
+          } finally {
+            _cursor.close();
+          }
+        } finally {
+          __db.endTransaction();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @Override
+  public Flow<List<SaleWithProducts>> getAllSalesWithProducts() {
+    final String _sql = "SELECT * FROM sales ORDER BY saleDate DESC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    return CoroutinesRoom.createFlow(__db, true, new String[] {"SaleProductCrossRef", "products",
+        "sales"}, new Callable<List<SaleWithProducts>>() {
+      @Override
+      @NonNull
+      public List<SaleWithProducts> call() throws Exception {
+        __db.beginTransaction();
+        try {
+          final Cursor _cursor = DBUtil.query(__db, _statement, true, null);
+          try {
+            final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+            final int _cursorIndexOfCustomerId = CursorUtil.getColumnIndexOrThrow(_cursor, "customerId");
+            final int _cursorIndexOfSaleDate = CursorUtil.getColumnIndexOrThrow(_cursor, "saleDate");
+            final int _cursorIndexOfTotalAmount = CursorUtil.getColumnIndexOrThrow(_cursor, "totalAmount");
+            final LongSparseArray<ArrayList<Product>> _collectionProducts = new LongSparseArray<ArrayList<Product>>();
+            while (_cursor.moveToNext()) {
+              final long _tmpKey;
+              _tmpKey = _cursor.getLong(_cursorIndexOfId);
+              if (!_collectionProducts.containsKey(_tmpKey)) {
+                _collectionProducts.put(_tmpKey, new ArrayList<Product>());
+              }
+            }
+            _cursor.moveToPosition(-1);
+            __fetchRelationshipproductsAscomSeuappVipme2DataLocalModelProduct(_collectionProducts);
+            final List<SaleWithProducts> _result = new ArrayList<SaleWithProducts>(_cursor.getCount());
+            while (_cursor.moveToNext()) {
+              final SaleWithProducts _item;
+              final Sale _tmpSale;
+              final long _tmpId;
+              _tmpId = _cursor.getLong(_cursorIndexOfId);
+              final Long _tmpCustomerId;
+              if (_cursor.isNull(_cursorIndexOfCustomerId)) {
+                _tmpCustomerId = null;
+              } else {
+                _tmpCustomerId = _cursor.getLong(_cursorIndexOfCustomerId);
+              }
+              final Date _tmpSaleDate;
+              final Long _tmp;
+              if (_cursor.isNull(_cursorIndexOfSaleDate)) {
+                _tmp = null;
+              } else {
+                _tmp = _cursor.getLong(_cursorIndexOfSaleDate);
+              }
+              final Date _tmp_1 = __converters.fromTimestamp(_tmp);
+              if (_tmp_1 == null) {
+                throw new IllegalStateException("Expected NON-NULL 'java.util.Date', but it was NULL.");
+              } else {
+                _tmpSaleDate = _tmp_1;
+              }
+              final double _tmpTotalAmount;
+              _tmpTotalAmount = _cursor.getDouble(_cursorIndexOfTotalAmount);
+              _tmpSale = new Sale(_tmpId,_tmpCustomerId,_tmpSaleDate,_tmpTotalAmount);
+              final ArrayList<Product> _tmpProductsCollection;
+              final long _tmpKey_1;
+              _tmpKey_1 = _cursor.getLong(_cursorIndexOfId);
+              _tmpProductsCollection = _collectionProducts.get(_tmpKey_1);
+              _item = new SaleWithProducts(_tmpSale,_tmpProductsCollection);
+              _result.add(_item);
+            }
+            __db.setTransactionSuccessful();
+            return _result;
+          } finally {
+            _cursor.close();
+          }
+        } finally {
+          __db.endTransaction();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @NonNull
+  public static List<Class<?>> getRequiredConverters() {
+    return Collections.emptyList();
+  }
+
+  private void __fetchRelationshipproductsAscomSeuappVipme2DataLocalModelProduct(
+      @NonNull final LongSparseArray<ArrayList<Product>> _map) {
+    if (_map.isEmpty()) {
+      return;
+    }
+    if (_map.size() > RoomDatabase.MAX_BIND_PARAMETER_CNT) {
+      RelationUtil.recursiveFetchLongSparseArray(_map, true, (map) -> {
+        __fetchRelationshipproductsAscomSeuappVipme2DataLocalModelProduct(map);
+        return Unit.INSTANCE;
+      });
+      return;
+    }
+    final StringBuilder _stringBuilder = StringUtil.newStringBuilder();
+    _stringBuilder.append("SELECT `products`.`id` AS `id`,`products`.`name` AS `name`,`products`.`description` AS `description`,`products`.`price` AS `price`,`products`.`imageUrl` AS `imageUrl`,_junction.`saleId` FROM `SaleProductCrossRef` AS _junction INNER JOIN `products` ON (_junction.`productId` = `products`.`id`) WHERE _junction.`saleId` IN (");
+    final int _inputSize = _map.size();
+    StringUtil.appendPlaceholders(_stringBuilder, _inputSize);
+    _stringBuilder.append(")");
+    final String _sql = _stringBuilder.toString();
+    final int _argCount = 0 + _inputSize;
+    final RoomSQLiteQuery _stmt = RoomSQLiteQuery.acquire(_sql, _argCount);
+    int _argIndex = 1;
+    for (int i = 0; i < _map.size(); i++) {
+      final long _item = _map.keyAt(i);
+      _stmt.bindLong(_argIndex, _item);
+      _argIndex++;
+    }
+    final Cursor _cursor = DBUtil.query(__db, _stmt, false, null);
+    try {
+      // _junction.saleId;
+      final int _itemKeyIndex = 5;
+      if (_itemKeyIndex == -1) {
+        return;
+      }
+      final int _cursorIndexOfId = 0;
+      final int _cursorIndexOfName = 1;
+      final int _cursorIndexOfDescription = 2;
+      final int _cursorIndexOfPrice = 3;
+      final int _cursorIndexOfImageUrl = 4;
+      while (_cursor.moveToNext()) {
+        final long _tmpKey;
+        _tmpKey = _cursor.getLong(_itemKeyIndex);
+        final ArrayList<Product> _tmpRelation = _map.get(_tmpKey);
+        if (_tmpRelation != null) {
+          final Product _item_1;
+          final long _tmpId;
+          _tmpId = _cursor.getLong(_cursorIndexOfId);
+          final String _tmpName;
+          _tmpName = _cursor.getString(_cursorIndexOfName);
+          final String _tmpDescription;
+          if (_cursor.isNull(_cursorIndexOfDescription)) {
+            _tmpDescription = null;
+          } else {
+            _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
+          }
+          final double _tmpPrice;
+          _tmpPrice = _cursor.getDouble(_cursorIndexOfPrice);
+          final String _tmpImageUrl;
+          if (_cursor.isNull(_cursorIndexOfImageUrl)) {
+            _tmpImageUrl = null;
+          } else {
+            _tmpImageUrl = _cursor.getString(_cursorIndexOfImageUrl);
+          }
+          _item_1 = new Product(_tmpId,_tmpName,_tmpDescription,_tmpPrice,_tmpImageUrl);
+          _tmpRelation.add(_item_1);
+        }
+      }
+    } finally {
+      _cursor.close();
+    }
+  }
+}
+package com.seuapp.vipme2.data.local.dao;
+
+import android.database.Cursor;
+import androidx.annotation.NonNull;
+import androidx.room.CoroutinesRoom;
+import androidx.room.EntityDeletionOrUpdateAdapter;
+import androidx.room.EntityInsertionAdapter;
+import androidx.room.EntityUpsertionAdapter;
+import androidx.room.RoomDatabase;
+import androidx.room.RoomSQLiteQuery;
+import androidx.room.util.CursorUtil;
+import androidx.room.util.DBUtil;
+import androidx.sqlite.db.SupportSQLiteStatement;
+import com.seuapp.vipme2.data.local.Converters;
+import com.seuapp.vipme2.data.local.model.StockMovement;
+import java.lang.Class;
+import java.lang.Exception;
+import java.lang.IllegalStateException;
+import java.lang.Long;
+import java.lang.Object;
+import java.lang.Override;
+import java.lang.String;
+import java.lang.SuppressWarnings;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Callable;
+import javax.annotation.processing.Generated;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlinx.coroutines.flow.Flow;
+
+@Generated("androidx.room.RoomProcessor")
+@SuppressWarnings({"unchecked", "deprecation"})
+public final class StockMovementDao_Impl implements StockMovementDao {
+  private final RoomDatabase __db;
+
+  private final EntityUpsertionAdapter<StockMovement> __upsertionAdapterOfStockMovement;
+
+  private final Converters __converters = new Converters();
+
+  public StockMovementDao_Impl(@NonNull final RoomDatabase __db) {
+    this.__db = __db;
+    this.__upsertionAdapterOfStockMovement = new EntityUpsertionAdapter<StockMovement>(new EntityInsertionAdapter<StockMovement>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "INSERT INTO `stock_movements` (`id`,`productId`,`quantityChange`,`movementDate`,`reason`) VALUES (nullif(?, 0),?,?,?,?)";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final StockMovement entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindLong(2, entity.getProductId());
+        statement.bindLong(3, entity.getQuantityChange());
+        final Long _tmp = __converters.dateToTimestamp(entity.getMovementDate());
+        if (_tmp == null) {
+          statement.bindNull(4);
+        } else {
+          statement.bindLong(4, _tmp);
+        }
+        statement.bindString(5, entity.getReason());
+      }
+    }, new EntityDeletionOrUpdateAdapter<StockMovement>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "UPDATE `stock_movements` SET `id` = ?,`productId` = ?,`quantityChange` = ?,`movementDate` = ?,`reason` = ? WHERE `id` = ?";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final StockMovement entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindLong(2, entity.getProductId());
+        statement.bindLong(3, entity.getQuantityChange());
+        final Long _tmp = __converters.dateToTimestamp(entity.getMovementDate());
+        if (_tmp == null) {
+          statement.bindNull(4);
+        } else {
+          statement.bindLong(4, _tmp);
+        }
+        statement.bindString(5, entity.getReason());
+        statement.bindLong(6, entity.getId());
+      }
+    });
+  }
+
+  @Override
+  public Object upsert(final StockMovement stockMovement,
+      final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        __db.beginTransaction();
+        try {
+          __upsertionAdapterOfStockMovement.upsert(stockMovement);
+          __db.setTransactionSuccessful();
+          return Unit.INSTANCE;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Flow<List<StockMovement>> getStockMovementsForProduct(final long productId) {
+    final String _sql = "SELECT * FROM stock_movements WHERE productId = ? ORDER BY movementDate DESC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    _statement.bindLong(_argIndex, productId);
+    return CoroutinesRoom.createFlow(__db, false, new String[] {"stock_movements"}, new Callable<List<StockMovement>>() {
+      @Override
+      @NonNull
+      public List<StockMovement> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfProductId = CursorUtil.getColumnIndexOrThrow(_cursor, "productId");
+          final int _cursorIndexOfQuantityChange = CursorUtil.getColumnIndexOrThrow(_cursor, "quantityChange");
+          final int _cursorIndexOfMovementDate = CursorUtil.getColumnIndexOrThrow(_cursor, "movementDate");
+          final int _cursorIndexOfReason = CursorUtil.getColumnIndexOrThrow(_cursor, "reason");
+          final List<StockMovement> _result = new ArrayList<StockMovement>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final StockMovement _item;
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final long _tmpProductId;
+            _tmpProductId = _cursor.getLong(_cursorIndexOfProductId);
+            final int _tmpQuantityChange;
+            _tmpQuantityChange = _cursor.getInt(_cursorIndexOfQuantityChange);
+            final Date _tmpMovementDate;
+            final Long _tmp;
+            if (_cursor.isNull(_cursorIndexOfMovementDate)) {
+              _tmp = null;
+            } else {
+              _tmp = _cursor.getLong(_cursorIndexOfMovementDate);
+            }
+            final Date _tmp_1 = __converters.fromTimestamp(_tmp);
+            if (_tmp_1 == null) {
+              throw new IllegalStateException("Expected NON-NULL 'java.util.Date', but it was NULL.");
+            } else {
+              _tmpMovementDate = _tmp_1;
+            }
+            final String _tmpReason;
+            _tmpReason = _cursor.getString(_cursorIndexOfReason);
+            _item = new StockMovement(_tmpId,_tmpProductId,_tmpQuantityChange,_tmpMovementDate,_tmpReason);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+        }
+      }
+
+      @Override
+      protected void finalize() {
+        _statement.release();
+      }
+    });
+  }
+
+  @NonNull
+  public static List<Class<?>> getRequiredConverters() {
+    return Collections.emptyList();
+  }
+}
+package com.seuapp.vipme2.data.local;
+
+import androidx.annotation.NonNull;
+import androidx.room.DatabaseConfiguration;
+import androidx.room.InvalidationTracker;
+import androidx.room.RoomDatabase;
+import androidx.room.RoomOpenHelper;
+import androidx.room.migration.AutoMigrationSpec;
+import androidx.room.migration.Migration;
+import androidx.room.util.DBUtil;
+import androidx.room.util.TableInfo;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+import androidx.sqlite.db.SupportSQLiteOpenHelper;
+import com.seuapp.vipme2.data.local.dao.CashEntryDao;
+import com.seuapp.vipme2.data.local.dao.CashEntryDao_Impl;
+import com.seuapp.vipme2.data.local.dao.CustomerDao;
+import com.seuapp.vipme2.data.local.dao.CustomerDao_Impl;
+import com.seuapp.vipme2.data.local.dao.ProductDao;
+import com.seuapp.vipme2.data.local.dao.ProductDao_Impl;
+import com.seuapp.vipme2.data.local.dao.SaleDao;
+import com.seuapp.vipme2.data.local.dao.SaleDao_Impl;
+import com.seuapp.vipme2.data.local.dao.StockMovementDao;
+import com.seuapp.vipme2.data.local.dao.StockMovementDao_Impl;
+import java.lang.Class;
+import java.lang.Override;
+import java.lang.String;
+import java.lang.SuppressWarnings;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.processing.Generated;
+
+@Generated("androidx.room.RoomProcessor")
+@SuppressWarnings({"unchecked", "deprecation"})
+public final class AppDatabase_Impl extends AppDatabase {
+  private volatile ProductDao _productDao;
+
+  private volatile CustomerDao _customerDao;
+
+  private volatile SaleDao _saleDao;
+
+  private volatile StockMovementDao _stockMovementDao;
+
+  private volatile CashEntryDao _cashEntryDao;
+
+  @Override
+  @NonNull
+  protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(1) {
+      @Override
+      public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `products` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `price` REAL NOT NULL, `imageUrl` TEXT)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_products_name` ON `products` (`name`)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `customers` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `phone` TEXT, `email` TEXT, `notes` TEXT)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_customers_name` ON `customers` (`name`)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `sales` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `customerId` INTEGER, `saleDate` INTEGER NOT NULL, `totalAmount` REAL NOT NULL)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_sales_saleDate` ON `sales` (`saleDate`)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `SaleProductCrossRef` (`saleId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, PRIMARY KEY(`saleId`, `productId`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `stock_movements` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `productId` INTEGER NOT NULL, `quantityChange` INTEGER NOT NULL, `movementDate` INTEGER NOT NULL, `reason` TEXT NOT NULL)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_stock_movements_productId` ON `stock_movements` (`productId`)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_stock_movements_movementDate` ON `stock_movements` (`movementDate`)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `cash_entries` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` REAL NOT NULL, `entryDate` INTEGER NOT NULL, `description` TEXT NOT NULL, `type` TEXT NOT NULL)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_cash_entries_entryDate` ON `cash_entries` (`entryDate`)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2af264c6064042673178ca374fc9b064')");
+      }
+
+      @Override
+      public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
+        db.execSQL("DROP TABLE IF EXISTS `products`");
+        db.execSQL("DROP TABLE IF EXISTS `customers`");
+        db.execSQL("DROP TABLE IF EXISTS `sales`");
+        db.execSQL("DROP TABLE IF EXISTS `SaleProductCrossRef`");
+        db.execSQL("DROP TABLE IF EXISTS `stock_movements`");
+        db.execSQL("DROP TABLE IF EXISTS `cash_entries`");
+        final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
+        if (_callbacks != null) {
+          for (RoomDatabase.Callback _callback : _callbacks) {
+            _callback.onDestructiveMigration(db);
+          }
+        }
+      }
+
+      @Override
+      public void onCreate(@NonNull final SupportSQLiteDatabase db) {
+        final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
+        if (_callbacks != null) {
+          for (RoomDatabase.Callback _callback : _callbacks) {
+            _callback.onCreate(db);
+          }
+        }
+      }
+
+      @Override
+      public void onOpen(@NonNull final SupportSQLiteDatabase db) {
+        mDatabase = db;
+        internalInitInvalidationTracker(db);
+        final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
+        if (_callbacks != null) {
+          for (RoomDatabase.Callback _callback : _callbacks) {
+            _callback.onOpen(db);
+          }
+        }
+      }
+
+      @Override
+      public void onPreMigrate(@NonNull final SupportSQLiteDatabase db) {
+        DBUtil.dropFtsSyncTriggers(db);
+      }
+
+      @Override
+      public void onPostMigrate(@NonNull final SupportSQLiteDatabase db) {
+      }
+
+      @Override
+      @NonNull
+      public RoomOpenHelper.ValidationResult onValidateSchema(
+          @NonNull final SupportSQLiteDatabase db) {
+        final HashMap<String, TableInfo.Column> _columnsProducts = new HashMap<String, TableInfo.Column>(5);
+        _columnsProducts.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsProducts.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsProducts.put("description", new TableInfo.Column("description", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsProducts.put("price", new TableInfo.Column("price", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsProducts.put("imageUrl", new TableInfo.Column("imageUrl", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysProducts = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesProducts = new HashSet<TableInfo.Index>(1);
+        _indicesProducts.add(new TableInfo.Index("index_products_name", false, Arrays.asList("name"), Arrays.asList("ASC")));
+        final TableInfo _infoProducts = new TableInfo("products", _columnsProducts, _foreignKeysProducts, _indicesProducts);
+        final TableInfo _existingProducts = TableInfo.read(db, "products");
+        if (!_infoProducts.equals(_existingProducts)) {
+          return new RoomOpenHelper.ValidationResult(false, "products(com.seuapp.vipme2.data.local.model.Product).\n"
+                  + " Expected:\n" + _infoProducts + "\n"
+                  + " Found:\n" + _existingProducts);
+        }
+        final HashMap<String, TableInfo.Column> _columnsCustomers = new HashMap<String, TableInfo.Column>(5);
+        _columnsCustomers.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCustomers.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCustomers.put("phone", new TableInfo.Column("phone", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCustomers.put("email", new TableInfo.Column("email", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCustomers.put("notes", new TableInfo.Column("notes", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysCustomers = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesCustomers = new HashSet<TableInfo.Index>(1);
+        _indicesCustomers.add(new TableInfo.Index("index_customers_name", false, Arrays.asList("name"), Arrays.asList("ASC")));
+        final TableInfo _infoCustomers = new TableInfo("customers", _columnsCustomers, _foreignKeysCustomers, _indicesCustomers);
+        final TableInfo _existingCustomers = TableInfo.read(db, "customers");
+        if (!_infoCustomers.equals(_existingCustomers)) {
+          return new RoomOpenHelper.ValidationResult(false, "customers(com.seuapp.vipme2.data.local.model.Customer).\n"
+                  + " Expected:\n" + _infoCustomers + "\n"
+                  + " Found:\n" + _existingCustomers);
+        }
+        final HashMap<String, TableInfo.Column> _columnsSales = new HashMap<String, TableInfo.Column>(4);
+        _columnsSales.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSales.put("customerId", new TableInfo.Column("customerId", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSales.put("saleDate", new TableInfo.Column("saleDate", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSales.put("totalAmount", new TableInfo.Column("totalAmount", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysSales = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesSales = new HashSet<TableInfo.Index>(1);
+        _indicesSales.add(new TableInfo.Index("index_sales_saleDate", false, Arrays.asList("saleDate"), Arrays.asList("ASC")));
+        final TableInfo _infoSales = new TableInfo("sales", _columnsSales, _foreignKeysSales, _indicesSales);
+        final TableInfo _existingSales = TableInfo.read(db, "sales");
+        if (!_infoSales.equals(_existingSales)) {
+          return new RoomOpenHelper.ValidationResult(false, "sales(com.seuapp.vipme2.data.local.model.Sale).\n"
+                  + " Expected:\n" + _infoSales + "\n"
+                  + " Found:\n" + _existingSales);
+        }
+        final HashMap<String, TableInfo.Column> _columnsSaleProductCrossRef = new HashMap<String, TableInfo.Column>(2);
+        _columnsSaleProductCrossRef.put("saleId", new TableInfo.Column("saleId", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSaleProductCrossRef.put("productId", new TableInfo.Column("productId", "INTEGER", true, 2, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysSaleProductCrossRef = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesSaleProductCrossRef = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoSaleProductCrossRef = new TableInfo("SaleProductCrossRef", _columnsSaleProductCrossRef, _foreignKeysSaleProductCrossRef, _indicesSaleProductCrossRef);
+        final TableInfo _existingSaleProductCrossRef = TableInfo.read(db, "SaleProductCrossRef");
+        if (!_infoSaleProductCrossRef.equals(_existingSaleProductCrossRef)) {
+          return new RoomOpenHelper.ValidationResult(false, "SaleProductCrossRef(com.seuapp.vipme2.data.local.model.SaleProductCrossRef).\n"
+                  + " Expected:\n" + _infoSaleProductCrossRef + "\n"
+                  + " Found:\n" + _existingSaleProductCrossRef);
+        }
+        final HashMap<String, TableInfo.Column> _columnsStockMovements = new HashMap<String, TableInfo.Column>(5);
+        _columnsStockMovements.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsStockMovements.put("productId", new TableInfo.Column("productId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsStockMovements.put("quantityChange", new TableInfo.Column("quantityChange", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsStockMovements.put("movementDate", new TableInfo.Column("movementDate", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsStockMovements.put("reason", new TableInfo.Column("reason", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysStockMovements = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesStockMovements = new HashSet<TableInfo.Index>(2);
+        _indicesStockMovements.add(new TableInfo.Index("index_stock_movements_productId", false, Arrays.asList("productId"), Arrays.asList("ASC")));
+        _indicesStockMovements.add(new TableInfo.Index("index_stock_movements_movementDate", false, Arrays.asList("movementDate"), Arrays.asList("ASC")));
+        final TableInfo _infoStockMovements = new TableInfo("stock_movements", _columnsStockMovements, _foreignKeysStockMovements, _indicesStockMovements);
+        final TableInfo _existingStockMovements = TableInfo.read(db, "stock_movements");
+        if (!_infoStockMovements.equals(_existingStockMovements)) {
+          return new RoomOpenHelper.ValidationResult(false, "stock_movements(com.seuapp.vipme2.data.local.model.StockMovement).\n"
+                  + " Expected:\n" + _infoStockMovements + "\n"
+                  + " Found:\n" + _existingStockMovements);
+        }
+        final HashMap<String, TableInfo.Column> _columnsCashEntries = new HashMap<String, TableInfo.Column>(5);
+        _columnsCashEntries.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCashEntries.put("amount", new TableInfo.Column("amount", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCashEntries.put("entryDate", new TableInfo.Column("entryDate", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCashEntries.put("description", new TableInfo.Column("description", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCashEntries.put("type", new TableInfo.Column("type", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysCashEntries = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesCashEntries = new HashSet<TableInfo.Index>(1);
+        _indicesCashEntries.add(new TableInfo.Index("index_cash_entries_entryDate", false, Arrays.asList("entryDate"), Arrays.asList("ASC")));
+        final TableInfo _infoCashEntries = new TableInfo("cash_entries", _columnsCashEntries, _foreignKeysCashEntries, _indicesCashEntries);
+        final TableInfo _existingCashEntries = TableInfo.read(db, "cash_entries");
+        if (!_infoCashEntries.equals(_existingCashEntries)) {
+          return new RoomOpenHelper.ValidationResult(false, "cash_entries(com.seuapp.vipme2.data.local.model.CashEntry).\n"
+                  + " Expected:\n" + _infoCashEntries + "\n"
+                  + " Found:\n" + _existingCashEntries);
+        }
+        return new RoomOpenHelper.ValidationResult(true, null);
+      }
+    }, "2af264c6064042673178ca374fc9b064", "2c9bbc01c9f872f8573c46900eaf2a41");
+    final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
+    final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
+    return _helper;
+  }
+
+  @Override
+  @NonNull
+  protected InvalidationTracker createInvalidationTracker() {
+    final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
+    final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "products","customers","sales","SaleProductCrossRef","stock_movements","cash_entries");
+  }
+
+  @Override
+  public void clearAllTables() {
+    super.assertNotMainThread();
+    final SupportSQLiteDatabase _db = super.getOpenHelper().getWritableDatabase();
+    try {
+      super.beginTransaction();
+      _db.execSQL("DELETE FROM `products`");
+      _db.execSQL("DELETE FROM `customers`");
+      _db.execSQL("DELETE FROM `sales`");
+      _db.execSQL("DELETE FROM `SaleProductCrossRef`");
+      _db.execSQL("DELETE FROM `stock_movements`");
+      _db.execSQL("DELETE FROM `cash_entries`");
+      super.setTransactionSuccessful();
+    } finally {
+      super.endTransaction();
+      _db.query("PRAGMA wal_checkpoint(FULL)").close();
+      if (!_db.inTransaction()) {
+        _db.execSQL("VACUUM");
+      }
+    }
+  }
+
+  @Override
+  @NonNull
+  protected Map<Class<?>, List<Class<?>>> getRequiredTypeConverters() {
+    final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
+    _typeConvertersMap.put(ProductDao.class, ProductDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(CustomerDao.class, CustomerDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(SaleDao.class, SaleDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(StockMovementDao.class, StockMovementDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(CashEntryDao.class, CashEntryDao_Impl.getRequiredConverters());
+    return _typeConvertersMap;
+  }
+
+  @Override
+  @NonNull
+  public Set<Class<? extends AutoMigrationSpec>> getRequiredAutoMigrationSpecs() {
+    final HashSet<Class<? extends AutoMigrationSpec>> _autoMigrationSpecsSet = new HashSet<Class<? extends AutoMigrationSpec>>();
+    return _autoMigrationSpecsSet;
+  }
+
+  @Override
+  @NonNull
+  public List<Migration> getAutoMigrations(
+      @NonNull final Map<Class<? extends AutoMigrationSpec>, AutoMigrationSpec> autoMigrationSpecs) {
+    final List<Migration> _autoMigrations = new ArrayList<Migration>();
+    return _autoMigrations;
+  }
+
+  @Override
+  public ProductDao productDao() {
+    if (_productDao != null) {
+      return _productDao;
+    } else {
+      synchronized(this) {
+        if(_productDao == null) {
+          _productDao = new ProductDao_Impl(this);
+        }
+        return _productDao;
+      }
+    }
+  }
+
+  @Override
+  public CustomerDao customerDao() {
+    if (_customerDao != null) {
+      return _customerDao;
+    } else {
+      synchronized(this) {
+        if(_customerDao == null) {
+          _customerDao = new CustomerDao_Impl(this);
+        }
+        return _customerDao;
+      }
+    }
+  }
+
+  @Override
+  public SaleDao saleDao() {
+    if (_saleDao != null) {
+      return _saleDao;
+    } else {
+      synchronized(this) {
+        if(_saleDao == null) {
+          _saleDao = new SaleDao_Impl(this);
+        }
+        return _saleDao;
+      }
+    }
+  }
+
+  @Override
+  public StockMovementDao stockMovementDao() {
+    if (_stockMovementDao != null) {
+      return _stockMovementDao;
+    } else {
+      synchronized(this) {
+        if(_stockMovementDao == null) {
+          _stockMovementDao = new StockMovementDao_Impl(this);
+        }
+        return _stockMovementDao;
+      }
+    }
+  }
+
+  @Override
+  public CashEntryDao cashEntryDao() {
+    if (_cashEntryDao != null) {
+      return _cashEntryDao;
+    } else {
+      synchronized(this) {
+        if(_cashEntryDao == null) {
+          _cashEntryDao = new CashEntryDao_Impl(this);
+        }
+        return _cashEntryDao;
+      }
+    }
+  }
+}
+package com.seuapp.vipme2.data.local
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.seuapp.vipme2.data.local.dao.SaleDao
+import com.seuapp.vipme2.data.local.model.Product
+import com.seuapp.vipme2.data.local.model.Sale
+import com.seuapp.vipme2.data.local.model.SaleProductCrossRef
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.util.Date
+
+@RunWith(AndroidJUnit4::class)
+class AppDatabaseTest {
+
+    @get:Rule
+    var instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+    private lateinit var saleDao: SaleDao
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        )
+            .allowMainThreadQueries() // Permite queries na thread principal para testes
+            .build()
+        saleDao = db.saleDao()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun insertSaleWithProducts_andRetrieve() = runBlocking {
+        // Given
+        val product = Product(id = 1, name = "Produto Teste", description = "Desc", price = 10.0, imageUrl = null)
+        db.productDao().upsert(product)
+
+        val sale = Sale(id = 1, customerId = null, saleDate = Date(), totalAmount = 10.0)
+        val saleId = saleDao.upsertSale(sale)
+
+        val crossRef = SaleProductCrossRef(saleId = saleId, productId = 1)
+        saleDao.insertSaleProductCrossRef(crossRef)
+
+        // When
+        val result = saleDao.getSaleWithProducts(saleId).first()
+
+        // Then
+        assertEquals(1, result?.products?.size)
+        assertEquals("Produto Teste", result?.products?.first()?.name)
+    }
+}
+package com.seuapp.vipme2
+
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
+
+import org.junit.Test
+import org.junit.runner.RunWith
+
+import org.junit.Assert.*
+
+/**
+ * Instrumented test, which will execute on an Android device.
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+@RunWith(AndroidJUnit4::class)
+class ExampleInstrumentedTest {
+    @Test
+    fun useAppContext() {
+        // Context of the app under test.
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("com.seuapp.vipme2", appContext.packageName)
+    }
+}
+package com.seuapp.vipme2.data.billing
+
+import android.app.Activity
+import android.content.Context
+import com.android.billingclient.api.*
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class BillingClientWrapper @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    // Listener para atualizaÃ§Ãµes de compra
+    private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
+        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
+            for (purchase in purchases) {
+                if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
+                    acknowledgePurchase(purchase)
+                }
+            }
+        } else {
+            // Tratar outros cÃ³digos de resposta (ex: usuÃ¡rio cancelou)
+        }
+    }
+
+    private val billingClient = BillingClient.newBuilder(context)
+        .setListener(purchasesUpdatedListener)
+        .enablePendingPurchases()
+        .build()
+
+    // StateFlow para expor os detalhes do produto premium para a UI
+    private val _productDetails = MutableStateFlow<ProductDetails?>(null)
+    val productDetails = _productDetails.asStateFlow()
+
+    // StateFlow para expor o status da compra
+    private val _purchaseStatus = MutableStateFlow(false)
+    val purchaseStatus = _purchaseStatus.asStateFlow()
+
+    init {
+        startConnection()
+    }
+
+    private fun startConnection() {
+        billingClient.startConnection(object : BillingClientStateListener {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    queryProductDetails()
+                    queryPurchases()
+                }
+            }
+
+            override fun onBillingServiceDisconnected() {
+                // Tentar reconectar
+                startConnection()
+            }
+        })
+    }
+
+    private fun queryProductDetails() {
+        val productList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PREMIUM_PRODUCT_ID)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        )
+        val params = QueryProductDetailsParams.newBuilder().setProductList(productList).build()
+
+        billingClient.queryProductDetails(params) { _, productDetailsList ->
+            if (productDetailsList.isNotEmpty()) {
+                _productDetails.value = productDetailsList[0]
+            }
+        }
+    }
+
+    fun launchPurchaseFlow(activity: Activity) {
+        val productDetails = _productDetails.value ?: return
+        val productDetailsParamsList = listOf(
+            BillingFlowParams.ProductDetailsParams.newBuilder()
+                .setProductDetails(productDetails)
+                .build()
+        )
+        val billingFlowParams = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(productDetailsParamsList)
+            .build()
+
+        billingClient.launchBillingFlow(activity, billingFlowParams)
+    }
+
+    private fun acknowledgePurchase(purchase: Purchase) {
+        val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
+        billingClient.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                // Compra confirmada, atualizar status para premium
+                _purchaseStatus.value = true
+            }
+        }
+    }
+
+    fun queryPurchases() {
+        val params = QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP)
+        billingClient.queryPurchasesAsync(params.build()) { billingResult, purchases ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases.isNotEmpty()) {
+                val hasPremium = purchases.any { it.products.contains(PREMIUM_PRODUCT_ID) }
+                if(hasPremium) {
+                    _purchaseStatus.value = true
+                }
+            }
+        }
+    }
+
+    companion object {
+        private const val PREMIUM_PRODUCT_ID = "vipme2.premium"
+    }
+}
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.CashEntry
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface CashEntryDao {
+    @Query("SELECT * FROM cash_entries ORDER BY entryDate DESC")
+    fun getAllCashEntries(): Flow<List<CashEntry>>
+
+    @Upsert
+    suspend fun upsert(cashEntry: CashEntry)
+}
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.Customer
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface CustomerDao {
+    @Query("SELECT * FROM customers ORDER BY name ASC")
+    fun getAllCustomers(): Flow<List<Customer>>
+
+    @Upsert
+    suspend fun upsert(customer: Customer)
+
+    @Query("DELETE FROM customers WHERE id = :customerId")
+    suspend fun delete(customerId: Long)
+}
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.Product
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface ProductDao {
+    @Query("SELECT * FROM products ORDER BY name ASC")
+    fun getAllProducts(): Flow<List<Product>>
+
+    @Upsert
+    suspend fun upsert(product: Product)
+
+    @Query("DELETE FROM products WHERE id = :productId")
+    suspend fun delete(productId: Long)
+}
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.Sale
+import com.seuapp.vipme2.data.local.model.SaleProductCrossRef
+import com.seuapp.vipme2.data.local.model.SaleWithProducts
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface SaleDao {
+
+    @Upsert
+    suspend fun upsertSale(sale: Sale): Long
+
+    @Insert
+    suspend fun insertSaleProductCrossRef(crossRef: SaleProductCrossRef)
+
+    @Transaction
+    @Query("SELECT * FROM sales WHERE id = :saleId")
+    fun getSaleWithProducts(saleId: Long): Flow<SaleWithProducts?>
+
+    @Transaction
+    @Query("SELECT * FROM sales ORDER BY saleDate DESC")
+    fun getAllSalesWithProducts(): Flow<List<SaleWithProducts>>
+}
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.StockMovement
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface StockMovementDao {
+    @Query("SELECT * FROM stock_movements WHERE productId = :productId ORDER BY movementDate DESC")
+    fun getStockMovementsForProduct(productId: Long): Flow<List<StockMovement>>
+
+    @Upsert
+    suspend fun upsert(stockMovement: StockMovement)
+}
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import java.util.Date
+
+@Entity(
+    tableName = "cash_entries",
+    indices = [Index(value = ["entryDate"])]
+)
+data class CashEntry(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val amount: Double,
+    val entryDate: Date,
+    val description: String,
+    val type: String // "income" or "expense"
+)
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(
+    tableName = "customers",
+    indices = [Index(value = ["name"])]
+)
+data class Customer(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val name: String,
+    val phone: String?,
+    val email: String?,
+    val notes: String?
+)
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(
+    tableName = "products",
+    indices = [Index(value = ["name"])]
+)
+data class Product(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val name: String,
+    val description: String?,
+    val price: Double,
+    val imageUrl: String?
+)
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import java.util.Date
+
+@Entity(
+    tableName = "sales",
+    indices = [Index(value = ["saleDate"])]
+)
+data class Sale(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val customerId: Long?,
+    val saleDate: Date,
+    val totalAmount: Double
+)
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+
+@Entity(primaryKeys = ["saleId", "productId"])
+data class SaleProductCrossRef(
+    val saleId: Long,
+    val productId: Long
+)
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Embedded
+import androidx.room.Junction
+import androidx.room.Relation
+
+data class SaleWithProducts(
+    @Embedded val sale: Sale,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = SaleProductCrossRef::class,
+            parentColumn = "saleId",
+            entityColumn = "productId"
+        )
+    )
+    val products: List<Product>
+)
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import java.util.Date
+
+@Entity(
+    tableName = "stock_movements",
+    indices = [
+        Index(value = ["productId"]),
+        Index(value = ["movementDate"])
+    ]
+)
+data class StockMovement(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val productId: Long,
+    val quantityChange: Int,
+    val movementDate: Date,
+    val reason: String
+)
+package com.seuapp.vipme2.data.local
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.seuapp.vipme2.data.local.dao.*
+import com.seuapp.vipme2.data.local.model.*
+
+@Database(
+    entities = [
+        Product::class, Customer::class, Sale::class, SaleProductCrossRef::class,
+        StockMovement::class, CashEntry::class
+    ],
+    version = 1,
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
+abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun productDao(): ProductDao
+    abstract fun customerDao(): CustomerDao
+    abstract fun saleDao(): SaleDao
+    abstract fun stockMovementDao(): StockMovementDao
+    abstract fun cashEntryDao(): CashEntryDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "vipme2_database"
+                )
+                    .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}
+package com.seuapp.vipme2.data.local
+
+import androidx.room.TypeConverter
+import java.util.Date
+
+class Converters {
+    @TypeConverter
+    fun fromTimestamp(value: Long?): Date? {
+        return value?.let { Date(it) }
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Date?): Long? {
+        return date?.time
+    }
+}
+package com.seuapp.vipme2.data.repository
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
+
+// Define os diferentes estados de licenÃ§a
+sealed class LicenseStatus {
+    object Unknown : LicenseStatus()
+    data class Trial(val daysRemaining: Long) : LicenseStatus()
+    object TrialExpired : LicenseStatus()
+    object Premium : LicenseStatus()
+}
+
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "vipme2_license_prefs"
+)
+
+@Singleton
+class LicenseRepository @Inject constructor(@ApplicationContext private val context: Context) {
+
+    private object PreferencesKeys {
+        val TRIAL_START_DATE = longPreferencesKey("trial_start_date")
+        val IS_PREMIUM = booleanPreferencesKey("is_premium")
+    }
+
+    val licenseStatus: Flow<LicenseStatus> = context.dataStore.data
+        .map { preferences ->
+            val isPremium = preferences[PreferencesKeys.IS_PREMIUM] ?: false
+            if (isPremium) {
+                return@map LicenseStatus.Premium
+            }
+
+            val trialStartDate = preferences[PreferencesKeys.TRIAL_START_DATE]
+            if (trialStartDate == null) {
+                // Se a data de inÃ­cio do trial nÃ£o existe, inicia um novo trial.
+                startTrial()
+                return@map LicenseStatus.Trial(TRIAL_DURATION_DAYS)
+            }
+
+            val elapsedTime = System.currentTimeMillis() - trialStartDate
+            val elapsedDays = TimeUnit.MILLISECONDS.toDays(elapsedTime)
+
+            if (elapsedDays >= TRIAL_DURATION_DAYS) {
+                LicenseStatus.TrialExpired
+            } else {
+                LicenseStatus.Trial(TRIAL_DURATION_DAYS - elapsedDays)
+            }
+        }
+
+    private suspend fun startTrial() {
+        context.dataStore.edit {
+            val trialStartDate = it[PreferencesKeys.TRIAL_START_DATE]
+            if (trialStartDate == null) { // SÃ³ define se ainda nÃ£o existir
+                it[PreferencesKeys.TRIAL_START_DATE] = System.currentTimeMillis()
+            }
+        }
+    }
+
+    suspend fun activatePremium() {
+        context.dataStore.edit {
+            it[PreferencesKeys.IS_PREMIUM] = true
+        }
+    }
+
+    companion object {
+        const val TRIAL_DURATION_DAYS = 7L
+    }
+}
+package com.seuapp.vipme2.di
+
+import android.content.Context
+import com.seuapp.vipme2.data.local.AppDatabase
+import com.seuapp.vipme2.data.local.dao.* // Import all DAOs
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return AppDatabase.getDatabase(context)
+    }
+
+    @Provides
+    fun provideProductDao(db: AppDatabase): ProductDao {
+        return db.productDao()
+    }
+
+    @Provides
+    fun provideCustomerDao(db: AppDatabase): CustomerDao {
+        return db.customerDao()
+    }
+
+    @Provides
+    fun provideSaleDao(db: AppDatabase): SaleDao {
+        return db.saleDao()
+    }
+
+    @Provides
+    fun provideStockMovementDao(db: AppDatabase): StockMovementDao {
+        return db.stockMovementDao()
+    }
+
+    @Provides
+    fun provideCashEntryDao(db: AppDatabase): CashEntryDao {
+        return db.cashEntryDao()
+    }
+}
+package com.seuapp.vipme2.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.seuapp.vipme2.presentation.dashboard.DashboardScreen
+import com.seuapp.vipme2.presentation.customers.CustomerScreen
+import com.seuapp.vipme2.presentation.finance.FinanceChartScreen
+import com.seuapp.vipme2.presentation.lock.LockScreen
+import com.seuapp.vipme2.presentation.products.ProductScreen
+import com.seuapp.vipme2.presentation.splash.SplashScreen
+
+sealed class Screen(val route: String) {
+    object Splash : Screen("splash")
+    object Lock : Screen("lock")
+    object Dashboard : Screen("dashboard")
+    object Customers : Screen("customers")
+    object Products : Screen("products")
+    object Finance : Screen("finance")
+}
+
+@Composable
+fun NavigationGraph(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = Screen.Splash.route) {
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onNavigateToDashboard = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLock = {
+                    navController.navigate(Screen.Lock.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Lock.route) {
+            LockScreen(
+                onPurchase = { /* TODO: Implementar fluxo de compra */ },
+                onRestore = { /* TODO: Implementar fluxo de restauraÃ§Ã£o */ }
+            )
+        }
+
+        composable(Screen.Dashboard.route) {
+            DashboardScreen(
+                onNavigateToCustomers = { navController.navigate(Screen.Customers.route) },
+                onNavigateToProducts = { navController.navigate(Screen.Products.route) },
+                onNavigateToFinance = { navController.navigate(Screen.Finance.route) }
+            )
+        }
+
+        composable(Screen.Customers.route) {
+            CustomerScreen()
+        }
+
+        composable(Screen.Products.route) {
+            ProductScreen()
+        }
+
+        composable(Screen.Finance.route) {
+            FinanceChartScreen()
+        }
+    }
+}
+package com.seuapp.vipme2.presentation.customers
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.seuapp.vipme2.data.local.model.Customer
+
+@Composable
+fun CustomerScreen(
+    // LÃ³gica com ViewModel serÃ¡ adicionada depois
+) {
+    val customers = emptyList<Customer>() // Dados de exemplo
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Clientes", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { /* TODO */ }) {
+            Text("Adicionar Cliente")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(customers) { customer ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(customer.name, style = MaterialTheme.typography.titleMedium)
+                        Text("Telefone: ${customer.phone ?: "-"}")
+                        Text("Email: ${customer.email ?: "-"}")
+                    }
+                }
+            }
+        }
+    }
+}
+package com.seuapp.vipme2.presentation.dashboard
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun DashboardScreen(
+    onNavigateToCustomers: () -> Unit,
+    onNavigateToProducts: () -> Unit,
+    onNavigateToFinance: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("VIPme2", style = MaterialTheme.typography.headlineLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Atalhos do Dashboard
+        Button(onClick = onNavigateToCustomers, modifier = Modifier.fillMaxWidth()) {
+            Text("Gerenciar Clientes")
+        }
+        Button(onClick = onNavigateToProducts, modifier = Modifier.fillMaxWidth()) {
+            Text("Gerenciar Produtos")
+        }
+        Button(onClick = onNavigateToFinance, modifier = Modifier.fillMaxWidth()) {
+            Text("Ver Fluxo de Caixa")
+        }
+
+        // Cards de Resumo (serÃ£o dinÃ¢micos com ViewModel no futuro)
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Resumo Financeiro", style = MaterialTheme.typography.titleMedium)
+                Text("Entradas: R$ 0,00")
+                Text("SaÃ­das: R$ 0,00")
+                Text("Saldo: R$ 0,00")
+            }
+        }
+    }
+}
+package com.seuapp.vipme2.presentation.finance
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.github.smarttoolfactory.compose.charts.bar.BarChart
+import com.github.smarttoolfactory.compose.charts.bar.BarChartData
+import com.github.smarttoolfactory.compose.charts.bar.BarChartStyle
+import com.github.smarttoolfactory.compose.charts.bar.BarData
+import com.seuapp.vipme2.data.local.model.CashEntry
+import java.text.SimpleDateFormat
+import java.util.*
+
+// Dados de exemplo para o grÃ¡fico
+private fun sampleEntries(): List<CashEntry> {
+    val today = Date()
+    val calendar = Calendar.getInstance()
+    return listOf(
+        CashEntry(id = 1, amount = 250.0, entryDate = today, description = "Venda 1", type = "income"),
+        CashEntry(id = 2, amount = 80.0, entryDate = today, description = "Fornecedor", type = "expense"),
+        CashEntry(id = 3, amount = 400.0, entryDate = today, description = "Venda 2", type = "income"),
+        CashEntry(id = 4, amount = 120.0, entryDate = today, description = "Aluguel", type = "expense"),
+    ).apply {
+        // Adiciona dados para dias anteriores
+        calendar.time = today
+        calendar.add(Calendar.DATE, -1)
+        add(CashEntry(id = 5, amount = 180.0, entryDate = calendar.time, description = "Venda 3", type = "income"))
+        calendar.add(Calendar.DATE, -1)
+        add(CashEntry(id = 6, amount = 200.0, entryDate = calendar.time, description = "Venda 4", type = "income"))
+        add(CashEntry(id = 7, amount = 50.0, entryDate = calendar.time, description = "Material", type = "expense"))
+    }
+}
+
+@Composable
+fun FinanceChartScreen() {
+    val entries = sampleEntries()
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Fluxo de Caixa", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        val groupedByDate = entries.groupBy { SimpleDateFormat("dd/MM", Locale.getDefault()).format(it.entryDate) }
+
+        val bars = groupedByDate.map { (date, entriesOnDate) ->
+            val income = entriesOnDate.filter { it.type == "income" }.sumOf { it.amount }.toFloat()
+            val expense = entriesOnDate.filter { it.type == "expense" }.sumOf { it.amount }.toFloat()
+
+            listOf(
+                BarData(label = "Entrada", value = income, color = Color(0xFF4CAF50)),
+                BarData(label = "SaÃ­da", value = expense, color = Color(0xFFF44336))
+            )
+        }.flatten()
+
+        val chartData = BarChartData(bars = bars)
+
+        BarChart(
+            modifier = Modifier.fillMaxWidth().height(300.dp),
+            barChartData = chartData,
+            style = BarChartStyle(barWidth = 32.dp)
+        )
+    }
+}
+package com.seuapp.vipme2.presentation.license
+
+import android.app.Activity
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.seuapp.vipme2.data.billing.BillingClientWrapper
+import com.seuapp.vipme2.data.repository.LicenseRepository
+import com.seuapp.vipme2.data.repository.LicenseStatus
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class LicenseViewModel @Inject constructor(
+    private val licenseRepository: LicenseRepository,
+    private val billingClient: BillingClientWrapper
+) : ViewModel() {
+
+    val licenseStatus: StateFlow<LicenseStatus> = licenseRepository.licenseStatus
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = LicenseStatus.Unknown
+        )
+
+    init {
+        // Observa o status da compra do BillingClient e ativa o premium se a compra for bem-sucedida
+        viewModelScope.launch {
+            billingClient.purchaseStatus.collectLatest { hasPurchased ->
+                if (hasPurchased) {
+                    licenseRepository.activatePremium()
+                }
+            }
+        }
+    }
+
+    fun launchPurchaseFlow(activity: Activity) {
+        billingClient.launchPurchaseFlow(activity)
+    }
+
+    fun restorePurchases() {
+        billingClient.queryPurchases()
+    }
+}
+package com.seuapp.vipme2.presentation.lock
+
+import android.app.Activity
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.seuapp.vipme2.presentation.license.LicenseViewModel
+
+@Composable
+fun LockScreen(
+    viewModel: LicenseViewModel = hiltViewModel()
+) {
+    val activity = LocalContext.current as Activity
+
+    Scaffold {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Seu perÃ­odo de teste terminou",
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Para continuar usando o VIPme2, por favor, adquira a versÃ£o premium.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(
+                onClick = { viewModel.launchPurchaseFlow(activity) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Comprar agora")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { viewModel.restorePurchases() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Restaurar compra")
+            }
+        }
+    }
+}
+package com.seuapp.vipme2.presentation.products
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.rememberAsyncImagePainter
+import com.seuapp.vipme2.data.local.model.Product
+
+@Composable
+fun ProductScreen(
+    viewModel: ProductViewModel = hiltViewModel()
+) {
+    val products by viewModel.products.collectAsState()
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Produtos", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { /* TODO: Add product */ }) {
+            Text("Adicionar Produto")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(products) { product ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Row(modifier = Modifier.padding(12.dp)) {
+                        Image(
+                            painter = rememberAsyncImagePainter(product.imageUrl),
+                            contentDescription = product.name,
+                            modifier = Modifier.size(64.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(product.name, style = MaterialTheme.typography.titleMedium)
+                            Text("PreÃ§o: R$ ${product.price}")
+                            Text(product.description ?: "")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+package com.seuapp.vipme2.presentation.products
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.seuapp.vipme2.data.local.dao.ProductDao
+import com.seuapp.vipme2.data.local.model.Product
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
+
+@HiltViewModel
+class ProductViewModel @Inject constructor(
+    private val productDao: ProductDao
+) : ViewModel() {
+
+    val products: StateFlow<List<Product>> = productDao.getAllProducts()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+}
+package com.seuapp.vipme2.presentation.splash
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.seuapp.vipme2.data.repository.LicenseStatus
+import com.seuapp.vipme2.presentation.license.LicenseViewModel
+
+@Composable
+fun SplashScreen(
+    viewModel: LicenseViewModel = hiltViewModel(),
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToLock: () -> Unit
+) {
+    val licenseStatus by viewModel.licenseStatus.collectAsState()
+
+    LaunchedEffect(licenseStatus) {
+        when (licenseStatus) {
+            is LicenseStatus.Trial, LicenseStatus.Premium -> {
+                onNavigateToDashboard()
+            }
+            is LicenseStatus.TrialExpired -> {
+                onNavigateToLock()
+            }
+            is LicenseStatus.Unknown -> {
+                // Aguarda o status ser determinado
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+package com.seuapp.vipme2.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+val Purple80 = Color(0xFFD0BCFF)
+val PurpleGrey80 = Color(0xFFCCC2DC)
+val Pink80 = Color(0xFFEFB8C8)
+
+val Purple40 = Color(0xFF6650a4)
+val PurpleGrey40 = Color(0xFF625b71)
+val Pink40 = Color(0xFF7D5260)
+package com.seuapp.vipme2.ui.theme
+
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
+)
+
+private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+)
+
+@Composable
+fun VIPme2Theme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}
+package com.seuapp.vipme2.ui.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+// Set of Material typography styles to start with
+val Typography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    )
+    /* Other default text styles to override
+    titleLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    )
+    */
+)
+package com.seuapp.vipme2
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.seuapp.vipme2.navigation.NavigationGraph
+import com.seuapp.vipme2.ui.theme.VIPme2Theme
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            VIPme2Theme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val navController = rememberNavController()
+                    NavigationGraph(navController = navController)
+                }
+            }
+        }
+    }
+}
+package com.seuapp.vipme2
+
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
+class VipMeApplication : Application()
+package com.seuapp.vipme2.data.local
+
+import androidx.room.Room
+import com.seuapp.vipme2.data.local.dao.SaleDao
+import com.seuapp.vipme2.data.local.model.Product
+import com.seuapp.vipme2.data.local.model.Sale
+import com.seuapp.vipme2.data.local.model.SaleProductCrossRef
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import java.util.Date
+
+class AppDatabaseTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+    private lateinit var saleDao: SaleDao
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        )
+            .allowMainThreadQueries()
+            .build()
+        saleDao = db.saleDao()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun insertSaleWithProducts_andRetrieve() = runBlocking {
+        val product =
+            Product(name = "Produto Teste", description = "Desc", price = 10.0, imageUrl = null)
+        db.productDao().upsert(product)
+
+        val sale = Sale(customerId = null, saleDate = Date(), totalAmount = 10.0)
+        val saleId = saleDao.upsertSale(sale)
+
+        val crossRef = SaleProductCrossRef(saleId = saleId, productId = 1)
+        saleDao.insertSaleProductCrossRef(crossRef)
+
+        val result = saleDao.getSaleWithProducts(saleId).first()
+        assertEquals(1, result?.products?.size)
+        assertEquals("Produto Teste", result?.products?.first()?.name)
+    }
+}
+package com.seuapp.vipme2.data.local
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.seuapp.vipme2.data.local.model.CashEntry
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.*
+import java.util.*
+
+class CashEntryDaoTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        ).allowMainThreadQueries().build()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun insertCashEntries_andRetrieveInDescendingOrder() = runBlocking {
+        val entry1 = CashEntry(amount = 100.0, entryDate = Date(100000), description = "Entrada A", type = "income")
+        val entry2 = CashEntry(amount = 50.0, entryDate = Date(200000), description = "Entrada B", type = "expense")
+        val entry3 = CashEntry(amount = 75.0, entryDate = Date(150000), description = "Entrada C", type = "income")
+
+        db.cashEntryDao().upsert(entry1)
+        db.cashEntryDao().upsert(entry2)
+        db.cashEntryDao().upsert(entry3)
+
+        val result = db.cashEntryDao().getAllCashEntries().first()
+
+        Assert.assertEquals(3, result.size)
+        Assert.assertEquals("Entrada B", result[0].description) // mais recente
+        Assert.assertEquals("Entrada C", result[1].description)
+        Assert.assertEquals("Entrada A", result[2].description) // mais antiga
+    }
+}
+package com.seuapp.vipme2.data.local
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.seuapp.vipme2.data.local.model.Customer
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.*
+import java.util.*
+
+class FlowEmissionTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        ).allowMainThreadQueries().build()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun customerDao_emitsFlowCorrectly() = runBlocking {
+        val customer = Customer(name = "Maria", phone = "123456789", email = "maria@email.com", notes = "VIP")
+        db.customerDao().upsert(customer)
+
+        val result = db.customerDao().getAllCustomers().first()
+
+        Assert.assertEquals(1, result.size)
+        Assert.assertEquals("Maria", result[0].name)
+    }
+}
+package com.seuapp.vipme2.data.local
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.seuapp.vipme2.data.local.model.Product
+import com.seuapp.vipme2.data.local.model.StockMovement
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.*
+import java.util.*
+
+class StockMovementDaoTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        ).allowMainThreadQueries().build()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun insertStockMovements_andRetrieveByProductIdDescending() = runBlocking {
+        val product = Product(name = "Produto X", description = "Teste", price = 10.0, imageUrl = null)
+        db.productDao().upsert(product)
+
+        val movement1 = StockMovement(productId = product.id, quantity = 5, movementDate = Date(100000), type = "entrada")
+        val movement2 = StockMovement(productId = product.id, quantity = 3, movementDate = Date(200000), type = "saida")
+        val movement3 = StockMovement(productId = product.id, quantity = 2, movementDate = Date(150000), type = "entrada")
+
+        db.stockMovementDao().upsert(movement1)
+        db.stockMovementDao().upsert(movement2)
+        db.stockMovementDao().upsert(movement3)
+
+        val result = db.stockMovementDao().getMovementsByProduct(product.id).first()
+
+        Assert.assertEquals(3, result.size)
+        Assert.assertEquals(200000, result[0].movementDate.time) // mais recente
+        Assert.assertEquals(150000, result[1].movementDate.time)
+        Assert.assertEquals(100000, result[2].movementDate.time) // mais antiga
+    }
+}
+package com.seuapp.vipme2
+
+import org.junit.Test
+
+import org.junit.Assert.*
+
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+class ExampleUnitTest {
+    @Test
+    fun addition_isCorrect() {
+        assertEquals(4, 2 + 2)
+    }
+}

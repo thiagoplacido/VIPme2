@@ -1,45 +1,21 @@
-// C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\build.gradle.kts
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.compose) // Adicionado para corrigir o erro de compilação
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kotlin.kapt) // ✅ agora vai reconhecer
+    alias(libs.plugins.hilt)
 }
 
 android {
-    namespace = "com.example.vipme2"
-    compileSdk = 36
+    namespace = "com.seuapp.vipme2"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.vipme2"
-        minSdk = 24
-        targetSdk = 36
+        applicationId = "com.seuapp.vipme2"
+        minSdk = 26
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     buildFeatures {
@@ -50,12 +26,13 @@ android {
         kotlinCompilerExtensionVersion = "1.5.3"
     }
 
-    packaging {
-        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
 dependencies {
+    // Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -65,19 +42,36 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
+    // Navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+
+    // DataStore & Security
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.security.crypto)
+
+    // Billing
+    implementation(libs.play.billing)
+
+    // UI
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.core)
+    implementation(libs.coil.compose)
+
+    // Testes
     testImplementation(libs.junit)
+    testImplementation("androidx.room:room-testing:2.6.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-
-    // Para usar coroutines com Room
-    implementation("androidx.room:room-ktx:2.6.1")
-
-    // (opcional) Para testes com Room
-    testImplementation("androidx.room:room-testing:2.6.1")
 }

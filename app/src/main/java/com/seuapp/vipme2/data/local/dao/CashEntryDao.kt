@@ -1,8 +1,8 @@
 package com.seuapp.vipme2.data.local.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import com.seuapp.vipme2.data.local.model.CashEntry
 import kotlinx.coroutines.flow.Flow
 
@@ -11,6 +11,6 @@ interface CashEntryDao {
     @Query("SELECT * FROM cash_entries ORDER BY entryDate DESC")
     fun getAllCashEntries(): Flow<List<CashEntry>>
 
-    @Insert
-    suspend fun insert(cashEntry: CashEntry)
+    @Upsert
+    suspend fun upsert(cashEntry: CashEntry)
 }
