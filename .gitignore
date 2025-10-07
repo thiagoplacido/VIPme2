@@ -1,0 +1,37 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Local configuration file
+local.properties
+
+# Log files
+*.log
+
+# Android Studio files
+.idea/
+*.iml
+.DS_Store
+
+# Keystore files
+*.jks
+*.keystore
+
+# Emulator files
+.android/
+*.hprof
+
+# NDK
+obj/
+
+# Large cache / system images
+.cxx/
+.externalNativeBuild/
+*.apk
+*.ap_ 
+*.dex
+*.class
+*.so
+*.dll
+*.exe
