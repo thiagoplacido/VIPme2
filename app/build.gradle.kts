@@ -58,6 +58,7 @@ dependencies {
     // DataStore & Security
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.security.crypto)
+    implementation("com.github.bumptech.glide:glide:4.15.1")
 
     // Billing
     implementation(libs.play.billing)

@@ -1,0 +1,1737 @@
+========================================================================= 
+ARQUIVOS KOTLIN (.kt) 
+========================================================================= 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\androidTest\java\com\seuapp\vipme2\ExampleInstrumentedTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2
+
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
+
+import org.junit.Test
+import org.junit.runner.RunWith
+
+import org.junit.Assert.*
+
+/**
+ * Instrumented test, which will execute on an Android device.
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+@RunWith(AndroidJUnit4::class)
+class ExampleInstrumentedTest {
+    @Test
+    fun useAppContext() {
+        // Context of the app under test.
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("com.seuapp.vipme2", appContext.packageName)
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\androidTest\java\com\seuapp\vipme2\HiltInjectionTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2 
+import androidx.test.ext.junit.runners.AndroidJUnit4 
+import dagger.hilt.android.testing.HiltAndroidRule 
+import dagger.hilt.android.testing.HiltAndroidTest 
+import org.junit.Rule 
+import org.junit.Test 
+import org.junit.runner.RunWith 
+@HiltAndroidTest 
+@RunWith(AndroidJUnit4::class) 
+class HiltInjectionTest { 
+    @get:Rule 
+    val hiltRule = HiltAndroidRule(this) 
+    @Test 
+    fun injectDependencies() { 
+        hiltRule.inject() 
+        // Verificações aqui 
+    } 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\androidTest\java\com\seuapp\vipme2\data\local\AppDatabaseTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.seuapp.vipme2.data.local.dao.SaleDao
+import com.seuapp.vipme2.data.local.model.Product
+import com.seuapp.vipme2.data.local.model.Sale
+import com.seuapp.vipme2.data.local.model.SaleProductCrossRef
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.util.Date
+
+@RunWith(AndroidJUnit4::class)
+class AppDatabaseTest {
+
+    @get:Rule
+    var instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+    private lateinit var saleDao: SaleDao
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        )
+            .allowMainThreadQueries() // Permite queries na thread principal para testes
+            .build()
+        saleDao = db.saleDao()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun insertSaleWithProducts_andRetrieve() = runBlocking {
+        // Given
+        val product = Product(id = 1, name = "Produto Teste", description = "Desc", price = 10.0, imageUrl = null)
+        db.productDao().upsert(product)
+
+        val sale = Sale(id = 1, customerId = null, saleDate = Date(), totalAmount = 10.0)
+        val saleId = saleDao.upsertSale(sale)
+
+        val crossRef = SaleProductCrossRef(saleId = saleId, productId = 1)
+        saleDao.insertSaleProductCrossRef(crossRef)
+
+        // When
+        val result = saleDao.getSaleWithProducts(saleId).first()
+
+        // Then
+        assertEquals(1, result?.products?.size)
+        assertEquals("Produto Teste", result?.products?.first()?.name)
+    }
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\MainActivity.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2 
+ 
+import android.os.Bundle 
+import androidx.activity.ComponentActivity 
+import androidx.activity.compose.setContent 
+import androidx.compose.material3.* 
+import androidx.compose.runtime.Composable 
+import androidx.navigation.compose.NavHost 
+import androidx.navigation.compose.composable 
+import androidx.navigation.compose.rememberNavController 
+import com.seuapp.vipme2.presentation.products.ProductScreen 
+import com.seuapp.vipme2.presentation.customers.CustomerScreen 
+import com.seuapp.vipme2.presentation.sales.SaleScreen 
+import com.seuapp.vipme2.presentation.cash.CashEntryScreen 
+import com.seuapp.vipme2.presentation.stock.StockMovementScreen 
+import dagger.hilt.android.AndroidEntryPoint 
+ 
+@AndroidEntryPoint 
+class MainActivity : ComponentActivity() { 
+    override fun onCreate(savedInstanceState: Bundle?) { 
+        super.onCreate(savedInstanceState) 
+        setContent { VipmeApp() } 
+    } 
+} 
+ 
+@Composable 
+fun VipmeApp() { 
+    val navController = rememberNavController() 
+    NavHost(navController = navController, startDestination = "products") { 
+        composable("products") { ProductScreen() } 
+        composable("customers") { CustomerScreen() } 
+        composable("sales") { SaleScreen() } 
+        composable("cash") { CashEntryScreen() } 
+        composable("stock") { StockMovementScreen() } 
+    } 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\MyApp.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2
+
+@HiltAndroidApp
+class MyApp : Application() 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\VipMeApplication.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2
+
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
+class VipMeApplication : Application()
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\ProductRepository.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data
+
+import javax.inject.Inject
+
+class ProductRepository @Inject constructor() {
+    fun getProducts(): List<String> {
+        return listOf("Shampoo", "Sabonete", "Creme", "Perfume")
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\billing\BillingClientWrapper.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.billing
+
+import android.app.Activity
+import android.content.Context
+import com.android.billingclient.api.*
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class BillingClientWrapper @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    // Listener para atualizações de compra
+    private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
+        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
+            for (purchase in purchases) {
+                if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
+                    acknowledgePurchase(purchase)
+                }
+            }
+        } else {
+            // Tratar outros códigos de resposta (ex: usuário cancelou)
+        }
+    }
+
+    private val billingClient = BillingClient.newBuilder(context)
+        .setListener(purchasesUpdatedListener)
+        .enablePendingPurchases()
+        .build()
+
+    // StateFlow para expor os detalhes do produto premium para a UI
+    private val _productDetails = MutableStateFlow<ProductDetails?>(null)
+    val productDetails = _productDetails.asStateFlow()
+
+    // StateFlow para expor o status da compra
+    private val _purchaseStatus = MutableStateFlow(false)
+    val purchaseStatus = _purchaseStatus.asStateFlow()
+
+    init {
+        startConnection()
+    }
+
+    private fun startConnection() {
+        billingClient.startConnection(object : BillingClientStateListener {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    queryProductDetails()
+                    queryPurchases()
+                }
+            }
+
+            override fun onBillingServiceDisconnected() {
+                // Tentar reconectar
+                startConnection()
+            }
+        })
+    }
+
+    private fun queryProductDetails() {
+        val productList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PREMIUM_PRODUCT_ID)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        )
+        val params = QueryProductDetailsParams.newBuilder().setProductList(productList).build()
+
+        billingClient.queryProductDetails(params) { _, productDetailsList ->
+            if (productDetailsList.isNotEmpty()) {
+                _productDetails.value = productDetailsList[0]
+            }
+        }
+    }
+
+    fun launchPurchaseFlow(activity: Activity) {
+        val productDetails = _productDetails.value ?: return
+        val productDetailsParamsList = listOf(
+            BillingFlowParams.ProductDetailsParams.newBuilder()
+                .setProductDetails(productDetails)
+                .build()
+        )
+        val billingFlowParams = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(productDetailsParamsList)
+            .build()
+
+        billingClient.launchBillingFlow(activity, billingFlowParams)
+    }
+
+    private fun acknowledgePurchase(purchase: Purchase) {
+        val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
+        billingClient.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                // Compra confirmada, atualizar status para premium
+                _purchaseStatus.value = true
+            }
+        }
+    }
+
+    fun queryPurchases() {
+        val params = QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP)
+        billingClient.queryPurchasesAsync(params.build()) { billingResult, purchases ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases.isNotEmpty()) {
+                val hasPremium = purchases.any { it.products.contains(PREMIUM_PRODUCT_ID) }
+                if(hasPremium) {
+                    _purchaseStatus.value = true
+                }
+            }
+        }
+    }
+
+    companion object {
+        private const val PREMIUM_PRODUCT_ID = "vipme2.premium"
+    }
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\AppDatabase.kt 
+-------------------------------------------------------------------------- 
+@file:Suppress("unused") 
+package com.seuapp.vipme2.data.local 
+ 
+import androidx.room.* 
+import com.seuapp.vipme2.data.local.model.* 
+ 
+@Database( 
+    entities = [Product::class, Customer::class, Sale::class, SaleProductCrossRef::class, StockMovement::class, CashEntry::class], 
+    version = 1, exportSchema = false 
+) 
+@TypeConverters(Converters::class) 
+abstract class AppDatabase : RoomDatabase() { 
+    abstract fun productDao(): ProductDao 
+    abstract fun customerDao(): CustomerDao 
+    abstract fun saleDao(): SaleDao 
+    abstract fun stockMovementDao(): StockMovementDao 
+    abstract fun cashEntryDao(): CashEntryDao 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\Converters.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local
+
+import androidx.room.TypeConverter
+import java.util.Date
+
+class Converters {
+    @TypeConverter
+    fun fromTimestamp(value: Long?): Date? {
+        return value?.let { Date(it) }
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Date?): Long? {
+        return date?.time
+    }
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\dao\CashEntryDao.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.CashEntry
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface CashEntryDao {
+    @Query("SELECT * FROM cash_entries ORDER BY entryDate DESC")
+    fun getAllCashEntries(): Flow<List<CashEntry>>
+
+    @Upsert
+    suspend fun upsert(cashEntry: CashEntry)
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\dao\CustomerDao.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.Customer
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface CustomerDao {
+    @Query("SELECT * FROM customers ORDER BY name ASC")
+    fun getAllCustomers(): Flow<List<Customer>>
+
+    @Upsert
+    suspend fun upsert(customer: Customer)
+
+    @Query("DELETE FROM customers WHERE id = :customerId")
+    suspend fun delete(customerId: Long)
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\dao\ProductDao.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.Product
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface ProductDao {
+    @Query("SELECT * FROM products ORDER BY name ASC")
+    fun getAllProducts(): Flow<List<Product>>
+
+    @Upsert
+    suspend fun upsert(product: Product)
+
+    @Query("DELETE FROM products WHERE id = :productId")
+    suspend fun delete(productId: Long)
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\dao\SaleDao.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.Sale
+import com.seuapp.vipme2.data.local.model.SaleProductCrossRef
+import com.seuapp.vipme2.data.local.model.SaleWithProducts
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface SaleDao {
+
+    @Upsert
+    suspend fun upsertSale(sale: Sale): Long
+
+    @Insert
+    suspend fun insertSaleProductCrossRef(crossRef: SaleProductCrossRef)
+
+    @Transaction
+    @Query("SELECT * FROM sales WHERE id = :saleId")
+    fun getSaleWithProducts(saleId: Long): Flow<SaleWithProducts?>
+
+    @Transaction
+    @Query("SELECT * FROM sales ORDER BY saleDate DESC")
+    fun getAllSalesWithProducts(): Flow<List<SaleWithProducts>>
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\dao\StockMovementDao.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import com.seuapp.vipme2.data.local.model.StockMovement
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface StockMovementDao {
+    @Query("SELECT * FROM stock_movements WHERE productId = :productId ORDER BY movementDate DESC")
+    fun getStockMovementsForProduct(productId: Long): Flow<List<StockMovement>>
+
+    @Upsert
+    suspend fun upsert(stockMovement: StockMovement)
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\model\CashEntry.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import java.util.Date
+
+@Entity(
+    tableName = "cash_entries",
+    indices = [Index(value = ["entryDate"])]
+)
+data class CashEntry(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val amount: Double,
+    val entryDate: Date,
+    val description: String,
+    val type: String // "income" or "expense"
+)
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\model\Customer.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(
+    tableName = "customers",
+    indices = [Index(value = ["name"])]
+)
+data class Customer(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val name: String,
+    val phone: String?,
+    val email: String?,
+    val notes: String?
+)
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\model\Product.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(
+    tableName = "products",
+    indices = [Index(value = ["name"])]
+)
+data class Product(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val name: String,
+    val description: String?,
+    val price: Double,
+    val imageUrl: String?
+)
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\model\Sale.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import java.util.Date
+
+@Entity(
+    tableName = "sales",
+    indices = [Index(value = ["saleDate"])]
+)
+data class Sale(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val customerId: Long?,
+    val saleDate: Date,
+    val totalAmount: Double
+)
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\model\SaleProductCrossRef.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+
+@Entity(primaryKeys = ["saleId", "productId"])
+data class SaleProductCrossRef(
+    val saleId: Long,
+    val productId: Long
+)
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\model\SaleWithProducts.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Embedded
+import androidx.room.Junction
+import androidx.room.Relation
+
+data class SaleWithProducts(
+    @Embedded val sale: Sale,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "id",
+        associateBy = Junction(
+            value = SaleProductCrossRef::class,
+            parentColumn = "saleId",
+            entityColumn = "productId"
+        )
+    )
+    val products: List<Product>
+)
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\model\StockMovement.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local.model
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import java.util.Date
+
+@Entity(
+    tableName = "stock_movements",
+    indices = [
+        Index(value = ["productId"]),
+        Index(value = ["movementDate"])
+    ]
+)
+data class StockMovement(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val productId: Long,
+    val quantityChange: Int,
+    val movementDate: Date,
+    val reason: String
+)
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\mock\MockRepository.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.mock
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.seuapp.vipme2.data.local.model.Product
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+
+class MockRepository @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    fun loadProducts(): List<Product> {
+        val json = context.assets.open("products.json").bufferedReader().use { it.readText() }
+        val type = object : TypeToken<List<Product>>() {}.type
+        return Gson().fromJson(json, type)
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\remote\ApiService.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.remote 
+import retrofit2.http.GET 
+import com.seuapp.vipme2.data.local.model.Product 
+interface ApiService { 
+    @GET("products") 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\remote\RemoteRepository.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.remote
+
+import com.seuapp.vipme2.data.local.model.Product
+import javax.inject.Inject
+
+class RemoteRepository @Inject constructor(
+    private val apiService: ApiService
+) {
+    suspend fun fetchProducts(): List<Product> = apiService.getProducts()
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\repository\LicenseRepository.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.repository
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
+
+// Define os diferentes estados de licença
+sealed class LicenseStatus {
+    object Unknown : LicenseStatus()
+    data class Trial(val daysRemaining: Long) : LicenseStatus()
+    object TrialExpired : LicenseStatus()
+    object Premium : LicenseStatus()
+}
+
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "vipme2_license_prefs"
+)
+
+@Singleton
+class LicenseRepository @Inject constructor(@ApplicationContext private val context: Context) {
+
+    private object PreferencesKeys {
+        val TRIAL_START_DATE = longPreferencesKey("trial_start_date")
+        val IS_PREMIUM = booleanPreferencesKey("is_premium")
+    }
+
+    val licenseStatus: Flow<LicenseStatus> = context.dataStore.data
+        .map { preferences ->
+            val isPremium = preferences[PreferencesKeys.IS_PREMIUM] ?: false
+            if (isPremium) {
+                return@map LicenseStatus.Premium
+            }
+
+            val trialStartDate = preferences[PreferencesKeys.TRIAL_START_DATE]
+            if (trialStartDate == null) {
+                // Se a data de início do trial não existe, inicia um novo trial.
+                startTrial()
+                return@map LicenseStatus.Trial(TRIAL_DURATION_DAYS)
+            }
+
+            val elapsedTime = System.currentTimeMillis() - trialStartDate
+            val elapsedDays = TimeUnit.MILLISECONDS.toDays(elapsedTime)
+
+            if (elapsedDays >= TRIAL_DURATION_DAYS) {
+                LicenseStatus.TrialExpired
+            } else {
+                LicenseStatus.Trial(TRIAL_DURATION_DAYS - elapsedDays)
+            }
+        }
+
+    private suspend fun startTrial() {
+        context.dataStore.edit {
+            val trialStartDate = it[PreferencesKeys.TRIAL_START_DATE]
+            if (trialStartDate == null) { // Só define se ainda não existir
+                it[PreferencesKeys.TRIAL_START_DATE] = System.currentTimeMillis()
+            }
+        }
+    }
+
+    suspend fun activatePremium() {
+        context.dataStore.edit {
+            it[PreferencesKeys.IS_PREMIUM] = true
+        }
+    }
+
+    companion object {
+        const val TRIAL_DURATION_DAYS = 7L
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\di\AppModule.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.di
+
+import android.content.Context
+import com.seuapp.vipme2.data.local.AppDatabase
+import com.seuapp.vipme2.data.local.dao.* // Import all DAOs
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return AppDatabase.getDatabase(context)
+    }
+
+    @Provides
+    fun provideProductDao(db: AppDatabase): ProductDao {
+        return db.productDao()
+    }
+
+    @Provides
+    fun provideCustomerDao(db: AppDatabase): CustomerDao {
+        return db.customerDao()
+    }
+
+    @Provides
+    fun provideSaleDao(db: AppDatabase): SaleDao {
+        return db.saleDao()
+    }
+
+    @Provides
+    fun provideStockMovementDao(db: AppDatabase): StockMovementDao {
+        return db.stockMovementDao()
+    }
+
+    @Provides
+    fun provideCashEntryDao(db: AppDatabase): CashEntryDao {
+        return db.cashEntryDao()
+    }
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\di\NetworkModule.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.di
+
+import com.seuapp.vipme2.data.remote.ApiService
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides
+    fun provideBaseUrl(): String = "https://suaapi.com.br/" // Altere para sua URL real
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(baseUrl: String): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideApiService(retrofit: Retrofit): ApiService =
+        retrofit.create(ApiService::class.java)
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\domain\GetCustomerListUseCase.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.domain 
+import com.seuapp.vipme2.data.local.dao.CustomerDao 
+import com.seuapp.vipme2.data.local.model.Customer 
+import kotlinx.coroutines.flow.Flow 
+import javax.inject.Inject 
+class GetCustomerListUseCase @Inject constructor(private val customerDao: CustomerDao) { 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\domain\GetProductsUseCase.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.domain 
+import com.seuapp.vipme2.data.local.model.Product 
+import com.seuapp.vipme2.data.remote.RemoteRepository 
+import javax.inject.Inject 
+class GetProductsUseCase @Inject constructor(private val remoteRepository: RemoteRepository) { 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\domain\RegisterSaleUseCase.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.domain 
+import com.seuapp.vipme2.data.local.model.Sale 
+import com.seuapp.vipme2.data.local.dao.SaleDao 
+import javax.inject.Inject 
+class RegisterSaleUseCase @Inject constructor(private val saleDao: SaleDao) { 
+    suspend operator fun invoke(sale: Sale): Long = saleDao.upsertSale(sale) 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\navigation\NavigationGraph.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.seuapp.vipme2.presentation.dashboard.DashboardScreen
+import com.seuapp.vipme2.presentation.customers.CustomerScreen
+import com.seuapp.vipme2.presentation.finance.FinanceChartScreen
+import com.seuapp.vipme2.presentation.lock.LockScreen
+import com.seuapp.vipme2.presentation.products.ProductScreen
+import com.seuapp.vipme2.presentation.splash.SplashScreen
+
+sealed class Screen(val route: String) {
+    object Splash : Screen("splash")
+    object Lock : Screen("lock")
+    object Dashboard : Screen("dashboard")
+    object Customers : Screen("customers")
+    object Products : Screen("products")
+    object Finance : Screen("finance")
+}
+
+@Composable
+fun NavigationGraph(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = Screen.Splash.route) {
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onNavigateToDashboard = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLock = {
+                    navController.navigate(Screen.Lock.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Lock.route) {
+            LockScreen(
+                onPurchase = { /* TODO: Implementar fluxo de compra */ },
+                onRestore = { /* TODO: Implementar fluxo de restauração */ }
+            )
+        }
+
+        composable(Screen.Dashboard.route) {
+            DashboardScreen(
+                onNavigateToCustomers = { navController.navigate(Screen.Customers.route) },
+                onNavigateToProducts = { navController.navigate(Screen.Products.route) },
+                onNavigateToFinance = { navController.navigate(Screen.Finance.route) }
+            )
+        }
+
+        composable(Screen.Customers.route) {
+            CustomerScreen()
+        }
+
+        composable(Screen.Products.route) {
+            ProductScreen()
+        }
+
+        composable(Screen.Finance.route) {
+            FinanceChartScreen()
+        }
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\presentation\customers\CustomerScreen.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.presentation.customers
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.seuapp.vipme2.data.local.model.Customer
+
+@Composable
+fun CustomerScreen(
+    // Lógica com ViewModel será adicionada depois
+) {
+    val customers = emptyList<Customer>() // Dados de exemplo
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Clientes", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { /* TODO */ }) {
+            Text("Adicionar Cliente")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(customers) { customer ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(customer.name, style = MaterialTheme.typography.titleMedium)
+                        Text("Telefone: ${customer.phone ?: "-"}")
+                        Text("Email: ${customer.email ?: "-"}")
+                    }
+                }
+            }
+        }
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\presentation\dashboard\DashboardScreen.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.presentation.dashboard
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun DashboardScreen(
+    onNavigateToCustomers: () -> Unit,
+    onNavigateToProducts: () -> Unit,
+    onNavigateToFinance: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("VIPme2", style = MaterialTheme.typography.headlineLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Atalhos do Dashboard
+        Button(onClick = onNavigateToCustomers, modifier = Modifier.fillMaxWidth()) {
+            Text("Gerenciar Clientes")
+        }
+        Button(onClick = onNavigateToProducts, modifier = Modifier.fillMaxWidth()) {
+            Text("Gerenciar Produtos")
+        }
+        Button(onClick = onNavigateToFinance, modifier = Modifier.fillMaxWidth()) {
+            Text("Ver Fluxo de Caixa")
+        }
+
+        // Cards de Resumo (serão dinâmicos com ViewModel no futuro)
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Resumo Financeiro", style = MaterialTheme.typography.titleMedium)
+                Text("Entradas: R$ 0,00")
+                Text("Saídas: R$ 0,00")
+                Text("Saldo: R$ 0,00")
+            }
+        }
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\presentation\finance\FinanceChartScreen.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.presentation.finance
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.github.smarttoolfactory.compose.charts.bar.BarChart
+import com.github.smarttoolfactory.compose.charts.bar.BarChartData
+import com.github.smarttoolfactory.compose.charts.bar.BarChartStyle
+import com.github.smarttoolfactory.compose.charts.bar.BarData
+import com.seuapp.vipme2.data.local.model.CashEntry
+import java.text.SimpleDateFormat
+import java.util.*
+
+// Dados de exemplo para o gráfico
+private fun sampleEntries(): List<CashEntry> {
+    val today = Date()
+    val calendar = Calendar.getInstance()
+    return listOf(
+        CashEntry(id = 1, amount = 250.0, entryDate = today, description = "Venda 1", type = "income"),
+        CashEntry(id = 2, amount = 80.0, entryDate = today, description = "Fornecedor", type = "expense"),
+        CashEntry(id = 3, amount = 400.0, entryDate = today, description = "Venda 2", type = "income"),
+        CashEntry(id = 4, amount = 120.0, entryDate = today, description = "Aluguel", type = "expense"),
+    ).apply {
+        // Adiciona dados para dias anteriores
+        calendar.time = today
+        calendar.add(Calendar.DATE, -1)
+        add(CashEntry(id = 5, amount = 180.0, entryDate = calendar.time, description = "Venda 3", type = "income"))
+        calendar.add(Calendar.DATE, -1)
+        add(CashEntry(id = 6, amount = 200.0, entryDate = calendar.time, description = "Venda 4", type = "income"))
+        add(CashEntry(id = 7, amount = 50.0, entryDate = calendar.time, description = "Material", type = "expense"))
+    }
+}
+
+@Composable
+fun FinanceChartScreen() {
+    val entries = sampleEntries()
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Fluxo de Caixa", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        val groupedByDate = entries.groupBy { SimpleDateFormat("dd/MM", Locale.getDefault()).format(it.entryDate) }
+
+        val bars = groupedByDate.map { (date, entriesOnDate) ->
+            val income = entriesOnDate.filter { it.type == "income" }.sumOf { it.amount }.toFloat()
+            val expense = entriesOnDate.filter { it.type == "expense" }.sumOf { it.amount }.toFloat()
+
+            listOf(
+                BarData(label = "Entrada", value = income, color = Color(0xFF4CAF50)),
+                BarData(label = "Saída", value = expense, color = Color(0xFFF44336))
+            )
+        }.flatten()
+
+        val chartData = BarChartData(bars = bars)
+
+        BarChart(
+            modifier = Modifier.fillMaxWidth().height(300.dp),
+            barChartData = chartData,
+            style = BarChartStyle(barWidth = 32.dp)
+        )
+    }
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\presentation\license\LicenseViewModel.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.presentation.license
+
+import android.app.Activity
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.seuapp.vipme2.data.billing.BillingClientWrapper
+import com.seuapp.vipme2.data.repository.LicenseRepository
+import com.seuapp.vipme2.data.repository.LicenseStatus
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class LicenseViewModel @Inject constructor(
+    private val licenseRepository: LicenseRepository,
+    private val billingClient: BillingClientWrapper
+) : ViewModel() {
+
+    val licenseStatus: StateFlow<LicenseStatus> = licenseRepository.licenseStatus
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = LicenseStatus.Unknown
+        )
+
+    init {
+        // Observa o status da compra do BillingClient e ativa o premium se a compra for bem-sucedida
+        viewModelScope.launch {
+            billingClient.purchaseStatus.collectLatest { hasPurchased ->
+                if (hasPurchased) {
+                    licenseRepository.activatePremium()
+                }
+            }
+        }
+    }
+
+    fun launchPurchaseFlow(activity: Activity) {
+        billingClient.launchPurchaseFlow(activity)
+    }
+
+    fun restorePurchases() {
+        billingClient.queryPurchases()
+    }
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\presentation\lock\LockScreen.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.presentation.lock
+
+import android.app.Activity
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.seuapp.vipme2.presentation.license.LicenseViewModel
+
+@Composable
+fun LockScreen(
+    viewModel: LicenseViewModel = hiltViewModel()
+) {
+    val activity = LocalContext.current as Activity
+
+    Scaffold {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Seu período de teste terminou",
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Para continuar usando o VIPme2, por favor, adquira a versão premium.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(
+                onClick = { viewModel.launchPurchaseFlow(activity) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Comprar agora")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { viewModel.restorePurchases() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Restaurar compra")
+            }
+        }
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\presentation\products\ProductScreen.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.presentation.products 
+ 
+import androidx.compose.foundation.Image 
+import androidx.compose.foundation.layout.* 
+import androidx.compose.foundation.lazy.LazyColumn 
+import androidx.compose.foundation.lazy.items 
+import androidx.compose.material3.* 
+import androidx.compose.runtime.* 
+import androidx.compose.ui.Modifier 
+import androidx.compose.ui.unit.dp 
+import androidx.hilt.navigation.compose.hiltViewModel 
+import coil.compose.AsyncImage 
+import com.seuapp.vipme2.data.local.model.Product 
+ 
+@Composable 
+fun ProductScreen(viewModel: ProductViewModel = hiltViewModel()) { 
+    val products by viewModel.products.collectAsState() 
+ 
+    LazyColumn(modifier = Modifier.padding(16.dp)) { 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\presentation\products\ProductViewModel.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.presentation.products 
+ 
+import androidx.lifecycle.ViewModel 
+import androidx.lifecycle.viewModelScope 
+import com.seuapp.vipme2.data.local.model.Product 
+import com.seuapp.vipme2.domain.GetProductsUseCase 
+import dagger.hilt.android.lifecycle.HiltViewModel 
+import kotlinx.coroutines.flow.MutableStateFlow 
+import kotlinx.coroutines.flow.StateFlow 
+import kotlinx.coroutines.launch 
+import javax.inject.Inject 
+ 
+@HiltViewModel 
+class ProductViewModel @Inject constructor( 
+    private val getProductsUseCase: GetProductsUseCase 
+) : ViewModel() { 
+ 
+    init { 
+        viewModelScope.launch { 
+            _products.value = getProductsUseCase() 
+        } 
+    } 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\presentation\splash\SplashScreen.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.presentation.splash
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.seuapp.vipme2.data.repository.LicenseStatus
+import com.seuapp.vipme2.presentation.license.LicenseViewModel
+
+@Composable
+fun SplashScreen(
+    viewModel: LicenseViewModel = hiltViewModel(),
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToLock: () -> Unit
+) {
+    val licenseStatus by viewModel.licenseStatus.collectAsState()
+
+    LaunchedEffect(licenseStatus) {
+        when (licenseStatus) {
+            is LicenseStatus.Trial, LicenseStatus.Premium -> {
+                onNavigateToDashboard()
+            }
+            is LicenseStatus.TrialExpired -> {
+                onNavigateToLock()
+            }
+            is LicenseStatus.Unknown -> {
+                // Aguarda o status ser determinado
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\ui\theme\Color.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+val Purple80 = Color(0xFFD0BCFF)
+val PurpleGrey80 = Color(0xFFCCC2DC)
+val Pink80 = Color(0xFFEFB8C8)
+
+val Purple40 = Color(0xFF6650a4)
+val PurpleGrey40 = Color(0xFF625b71)
+val Pink40 = Color(0xFF7D5260) 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\ui\theme\Theme.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.ui.theme
+
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
+)
+
+private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+)
+
+@Composable
+fun VIPme2Theme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\ui\theme\Type.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.ui.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+// Set of Material typography styles to start with
+val Typography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    )
+    /* Other default text styles to override
+    titleLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    )
+    */
+) 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\test\java\com\seuapp\vipme2\ExampleUnitTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2
+
+import org.junit.Test
+
+import org.junit.Assert.*
+
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+class ExampleUnitTest {
+    @Test
+    fun addition_isCorrect() {
+        assertEquals(4, 2 + 2)
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\test\java\com\seuapp\vipme2\GetProductsUseCaseTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2 
+import com.seuapp.vipme2.data.remote.RemoteRepository 
+import com.seuapp.vipme2.domain.GetProductsUseCase 
+import io.mockk.coEvery 
+import io.mockk.mockk 
+import kotlinx.coroutines.test.runTest 
+import org.junit.Assert.assertEquals 
+import org.junit.Test 
+class GetProductsUseCaseTest { 
+    private val useCase = GetProductsUseCase(repository) 
+    @Test 
+    fun `should return products from repository`() = runTest { 
+        coEvery { repository.fetchProducts() } returns emptyList() 
+        val result = useCase() 
+    } 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\test\java\com\seuapp\vipme2\ProductViewModelTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2 
+import app.cash.turbine.test 
+import com.seuapp.vipme2.domain.GetProductsUseCase 
+import com.seuapp.vipme2.presentation.products.ProductViewModel 
+import io.mockk.coEvery 
+import io.mockk.mockk 
+import kotlinx.coroutines.test.runTest 
+import org.junit.Assert.assertEquals 
+import org.junit.Test 
+class ProductViewModelTest { 
+    private val viewModel = ProductViewModel(useCase) 
+    @Test 
+    fun `should load products correctly`() = runTest { 
+        coEvery { useCase() } returns listOf() 
+        viewModel.products.test { 
+            assertEquals(emptyList(), awaitItem()) 
+            cancelAndIgnoreRemainingEvents() 
+        } 
+    } 
+} 
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\test\java\com\seuapp\vipme2\data\local\AppDatabaseTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local
+
+import androidx.room.Room
+import com.seuapp.vipme2.data.local.dao.SaleDao
+import com.seuapp.vipme2.data.local.model.Product
+import com.seuapp.vipme2.data.local.model.Sale
+import com.seuapp.vipme2.data.local.model.SaleProductCrossRef
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import java.util.Date
+
+class AppDatabaseTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+    private lateinit var saleDao: SaleDao
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        )
+            .allowMainThreadQueries()
+            .build()
+        saleDao = db.saleDao()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun insertSaleWithProducts_andRetrieve() = runBlocking {
+        val product =
+            Product(name = "Produto Teste", description = "Desc", price = 10.0, imageUrl = null)
+        db.productDao().upsert(product)
+
+        val sale = Sale(customerId = null, saleDate = Date(), totalAmount = 10.0)
+        val saleId = saleDao.upsertSale(sale)
+
+        val crossRef = SaleProductCrossRef(saleId = saleId, productId = 1)
+        saleDao.insertSaleProductCrossRef(crossRef)
+
+        val result = saleDao.getSaleWithProducts(saleId).first()
+        assertEquals(1, result?.products?.size)
+        assertEquals("Produto Teste", result?.products?.first()?.name)
+    }
+} 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\test\java\com\seuapp\vipme2\data\local\CashEntryDaoTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.seuapp.vipme2.data.local.model.CashEntry
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.*
+import java.util.*
+
+class CashEntryDaoTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        ).allowMainThreadQueries().build()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun insertCashEntries_andRetrieveInDescendingOrder() = runBlocking {
+        val entry1 = CashEntry(amount = 100.0, entryDate = Date(100000), description = "Entrada A", type = "income")
+        val entry2 = CashEntry(amount = 50.0, entryDate = Date(200000), description = "Entrada B", type = "expense")
+        val entry3 = CashEntry(amount = 75.0, entryDate = Date(150000), description = "Entrada C", type = "income")
+
+        db.cashEntryDao().upsert(entry1)
+        db.cashEntryDao().upsert(entry2)
+        db.cashEntryDao().upsert(entry3)
+
+        val result = db.cashEntryDao().getAllCashEntries().first()
+
+        Assert.assertEquals(3, result.size)
+        Assert.assertEquals("Entrada B", result[0].description) // mais recente
+        Assert.assertEquals("Entrada C", result[1].description)
+        Assert.assertEquals("Entrada A", result[2].description) // mais antiga
+    }
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\test\java\com\seuapp\vipme2\data\local\FlowEmissionTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.seuapp.vipme2.data.local.model.Customer
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.*
+import java.util.*
+
+class FlowEmissionTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        ).allowMainThreadQueries().build()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun customerDao_emitsFlowCorrectly() = runBlocking {
+        val customer = Customer(name = "Maria", phone = "123456789", email = "maria@email.com", notes = "VIP")
+        db.customerDao().upsert(customer)
+
+        val result = db.customerDao().getAllCustomers().first()
+
+        Assert.assertEquals(1, result.size)
+        Assert.assertEquals("Maria", result[0].name)
+    }
+}
+ 
+ 
+-------------------------------------------------------------------------- 
+ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\test\java\com\seuapp\vipme2\data\local\StockMovementDaoTest.kt 
+-------------------------------------------------------------------------- 
+package com.seuapp.vipme2.data.local
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.seuapp.vipme2.data.local.model.Product
+import com.seuapp.vipme2.data.local.model.StockMovement
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.*
+import java.util.*
+
+class StockMovementDaoTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private lateinit var db: AppDatabase
+
+    @Before
+    fun setup() {
+        db = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java
+        ).allowMainThreadQueries().build()
+    }
+
+    @After
+    fun teardown() {
+        db.close()
+    }
+
+    @Test
+    fun insertStockMovements_andRetrieveByProductIdDescending() = runBlocking {
+        val product = Product(name = "Produto X", description = "Teste", price = 10.0, imageUrl = null)
+        db.productDao().upsert(product)
+
+        val movement1 = StockMovement(productId = product.id, quantity = 5, movementDate = Date(100000), type = "entrada")
+        val movement2 = StockMovement(productId = product.id, quantity = 3, movementDate = Date(200000), type = "saida")
+        val movement3 = StockMovement(productId = product.id, quantity = 2, movementDate = Date(150000), type = "entrada")
+
+        db.stockMovementDao().upsert(movement1)
+        db.stockMovementDao().upsert(movement2)
+        db.stockMovementDao().upsert(movement3)
+
+        val result = db.stockMovementDao().getMovementsByProduct(product.id).first()
+
+        Assert.assertEquals(3, result.size)
+        Assert.assertEquals(200000, result[0].movementDate.time) // mais recente
+        Assert.assertEquals(150000, result[1].movementDate.time)
+        Assert.assertEquals(100000, result[2].movementDate.time) // mais antiga
+    }
+}
+ 
