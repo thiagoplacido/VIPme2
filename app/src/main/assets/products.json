@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "Shampoo VIP",
+    "description": "Limpeza profunda e brilho",
+    "price": 19.99,
+    "imageUrl": "https://via.placeholder.com/150"
+  },
+  {
+    "id": 2,
+    "name": "Creme VIP",
+    "description": "Hidratação intensa",
+    "price": 29.90,
+    "imageUrl": "https://via.placeholder.com/150"
+  }
+]

@@ -1923,53 +1923,24 @@ data class StockMovement(
     val movementDate: Date,
     val reason: String
 )
-package com.seuapp.vipme2.data.local
-
-import android.content.Context
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import com.seuapp.vipme2.data.local.dao.*
-import com.seuapp.vipme2.data.local.model.*
-
-@Database(
-    entities = [
-        Product::class, Customer::class, Sale::class, SaleProductCrossRef::class,
-        StockMovement::class, CashEntry::class
-    ],
-    version = 1,
-    exportSchema = false
-)
-@TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase() {
-
-    abstract fun productDao(): ProductDao
-    abstract fun customerDao(): CustomerDao
-    abstract fun saleDao(): SaleDao
-    abstract fun stockMovementDao(): StockMovementDao
-    abstract fun cashEntryDao(): CashEntryDao
-
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "vipme2_database"
-                )
-                    .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
-                    .fallbackToDestructiveMigration()
-                    .build()
-                INSTANCE = instance
-                instance
-            }
-        }
-    }
-}
+@file:Suppress("unused") 
+package com.seuapp.vipme2.data.local 
+ 
+import androidx.room.* 
+import com.seuapp.vipme2.data.local.model.* 
+ 
+@Database( 
+    entities = [Product::class, Customer::class, Sale::class, SaleProductCrossRef::class, StockMovement::class, CashEntry::class], 
+    version = 1, exportSchema = false 
+) 
+@TypeConverters(Converters::class) 
+abstract class AppDatabase : RoomDatabase() { 
+    abstract fun productDao(): ProductDao 
+    abstract fun customerDao(): CustomerDao 
+    abstract fun saleDao(): SaleDao 
+    abstract fun stockMovementDao(): StockMovementDao 
+    abstract fun cashEntryDao(): CashEntryDao 
+} 
 package com.seuapp.vipme2.data.local
 
 import androidx.room.TypeConverter
@@ -1985,6 +1956,41 @@ class Converters {
     fun dateToTimestamp(date: Date?): Long? {
         return date?.time
     }
+}
+package com.seuapp.vipme2.data.mock
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.seuapp.vipme2.data.local.model.Product
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+
+class MockRepository @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    fun loadProducts(): List<Product> {
+        val json = context.assets.open("products.json").bufferedReader().use { it.readText() }
+        val type = object : TypeToken<List<Product>>() {}.type
+        return Gson().fromJson(json, type)
+    }
+}
+package com.seuapp.vipme2.data.remote 
+ 
+import retrofit2.http.GET 
+import com.seuapp.vipme2.data.local.model.Product 
+ 
+interface ApiService { 
+    @GET("products") 
+package com.seuapp.vipme2.data.remote
+
+import com.seuapp.vipme2.data.local.model.Product
+import javax.inject.Inject
+
+class RemoteRepository @Inject constructor(
+    private val apiService: ApiService
+) {
+    suspend fun fetchProducts(): List<Product> = apiService.getProducts()
 }
 package com.seuapp.vipme2.data.repository
 
@@ -2065,6 +2071,15 @@ class LicenseRepository @Inject constructor(@ApplicationContext private val cont
         const val TRIAL_DURATION_DAYS = 7L
     }
 }
+package com.seuapp.vipme2.data
+
+import javax.inject.Inject
+
+class ProductRepository @Inject constructor() {
+    fun getProducts(): List<String> {
+        return listOf("Shampoo", "Sabonete", "Creme", "Perfume")
+    }
+}
 package com.seuapp.vipme2.di
 
 import android.content.Context
@@ -2111,6 +2126,37 @@ object AppModule {
     fun provideCashEntryDao(db: AppDatabase): CashEntryDao {
         return db.cashEntryDao()
     }
+}
+package com.seuapp.vipme2.di
+
+import com.seuapp.vipme2.data.remote.ApiService
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides
+    fun provideBaseUrl(): String = "https://suaapi.com.br/" // Altere para sua URL real
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(baseUrl: String): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideApiService(retrofit: Retrofit): ApiService =
+        retrofit.create(ApiService::class.java)
 }
 package com.seuapp.vipme2.navigation
 
@@ -2456,8 +2502,15 @@ import coil.compose.rememberAsyncImagePainter
 import com.seuapp.vipme2.data.local.model.Product
 
 @Composable
-fun ProductScreen(
-    viewModel: ProductViewModel = hiltViewModel()
+fun ProductScreen() {
+    val viewModel: ProductViewModel = hiltViewModel()
+    val products = viewModel.products
+
+    Column {
+        Text(text = "Produtos disponÃ­veis:")
+        products.forEach {
+            Text(text = it)
+
 ) {
     val products by viewModel.products.collectAsState()
 
@@ -2497,25 +2550,32 @@ package com.seuapp.vipme2.presentation.products
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.seuapp.vipme2.data.local.dao.ProductDao
 import com.seuapp.vipme2.data.local.model.Product
+import com.seuapp.vipme2.data.remote.RemoteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProductViewModel @Inject constructor(
-    private val productDao: ProductDao
+    private val remoteRepository: RemoteRepository
 ) : ViewModel() {
 
-    val products: StateFlow<List<Product>> = productDao.getAllProducts()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val _products = MutableStateFlow<List<Product>>(emptyList())
+    val products: StateFlow<List<Product>> = _products
+
+    init {
+        viewModelScope.launch {
+            try {
+                _products.value = remoteRepository.fetchProducts()
+            } catch (e: Exception) {
+                // Tratar erro de rede aqui
+                _products.value = emptyList()
+            }
+        }
+    }
 }
 package com.seuapp.vipme2.presentation.splash
 
@@ -2684,6 +2744,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+package com.seuapp.vipme2
+
+@HiltAndroidApp
+class MyApp : Application()
 package com.seuapp.vipme2
 
 import android.app.Application
@@ -2904,3 +2968,4 @@ class ExampleUnitTest {
         assertEquals(4, 2 + 2)
     }
 }
+Helo mundo
