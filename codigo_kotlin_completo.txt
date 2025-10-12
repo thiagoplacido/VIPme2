@@ -9,7 +9,11 @@ package com.seuapp.vipme2
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-
+import org.junit.Before
+import org.junit.After
+import org.junit.Rule
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.core.app.ApplicationProvider
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -39,7 +43,12 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest 
 import org.junit.Rule 
 import org.junit.Test 
-import org.junit.runner.RunWith 
+import org.junit.runner.RunWith
+import org.junit.Before
+import org.junit.After
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.core.app.ApplicationProvider
+
 @HiltAndroidTest 
 @RunWith(AndroidJUnit4::class) 
 class HiltInjectionTest { 
@@ -163,14 +172,6 @@ fun VipmeApp() {
     } 
 } 
  
- 
--------------------------------------------------------------------------- 
-ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\MyApp.kt 
--------------------------------------------------------------------------- 
-package com.seuapp.vipme2
-
-@HiltAndroidApp
-class MyApp : Application() 
  
 -------------------------------------------------------------------------- 
 ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\VipMeApplication.kt 
@@ -324,25 +325,56 @@ class BillingClientWrapper @Inject constructor(
 -------------------------------------------------------------------------- 
 ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\AppDatabase.kt 
 -------------------------------------------------------------------------- 
-@file:Suppress("unused") 
-package com.seuapp.vipme2.data.local 
- 
-import androidx.room.* 
-import com.seuapp.vipme2.data.local.model.* 
- 
-@Database( 
-    entities = [Product::class, Customer::class, Sale::class, SaleProductCrossRef::class, StockMovement::class, CashEntry::class], 
-    version = 1, exportSchema = false 
-) 
-@TypeConverters(Converters::class) 
-abstract class AppDatabase : RoomDatabase() { 
-    abstract fun productDao(): ProductDao 
-    abstract fun customerDao(): CustomerDao 
-    abstract fun saleDao(): SaleDao 
-    abstract fun stockMovementDao(): StockMovementDao 
-    abstract fun cashEntryDao(): CashEntryDao 
+package com.seuapp.vipme2.data.local
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.seuapp.vipme2.data.local.dao.*
+import com.seuapp.vipme2.data.local.model.*
+
+@Database(
+    entities = [
+        Product::class,
+        Customer::class,
+        Sale::class,
+        SaleProductCrossRef::class,
+        StockMovement::class,
+        CashEntry::class
+    ],
+    version = 1,
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
+abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun productDao(): ProductDao
+    abstract fun customerDao(): CustomerDao
+    abstract fun saleDao(): SaleDao
+    abstract fun stockMovementDao(): StockMovementDao
+    abstract fun cashEntryDao(): CashEntryDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "vipme2_database"
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
 } 
- 
  
 -------------------------------------------------------------------------- 
 ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\Converters.kt 
@@ -481,13 +513,19 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StockMovementDao {
+
     @Query("SELECT * FROM stock_movements WHERE productId = :productId ORDER BY movementDate DESC")
-    fun getStockMovementsForProduct(productId: Long): Flow<List<StockMovement>>
+    fun getMovementsByProduct(productId: Long): Flow<List<StockMovement>>
+
+    @Query("SELECT * FROM stock_movements ORDER BY movementDate DESC")
+    fun getAllMovements(): Flow<List<StockMovement>>
 
     @Upsert
     suspend fun upsert(stockMovement: StockMovement)
-}
- 
+
+    @Query("DELETE FROM stock_movements WHERE id = :id")
+    suspend fun delete(id: Long)
+} 
  
 -------------------------------------------------------------------------- 
 ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\local\model\CashEntry.kt 
@@ -641,11 +679,10 @@ data class StockMovement(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val productId: Long,
-    val quantityChange: Int,
+    val quantity: Int,
     val movementDate: Date,
-    val reason: String
-)
- 
+    val type: String
+) 
  
 -------------------------------------------------------------------------- 
 ARQUIVO: C:\Users\Thiago\AndroidStudioProjects\VIPme2\app\src\main\java\com\seuapp\vipme2\data\mock\MockRepository.kt 

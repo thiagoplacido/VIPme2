@@ -16,7 +16,7 @@ data class StockMovement(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val productId: Long,
-    val quantityChange: Int,
+    val quantity: Int,
     val movementDate: Date,
-    val reason: String
+    val type: MovementType // "entrada" ou "saida"
 )
